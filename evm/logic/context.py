@@ -22,7 +22,7 @@ def balance(computation):
 
 
 def origin(computation):
-    computation.stack.push(computation.msg.origin)
+    computation.stack.push(computation.transaction_context.origin)
 
 
 def address(computation):
@@ -106,7 +106,7 @@ def codecopy(computation):
 
 
 def gasprice(computation):
-    computation.stack.push(computation.msg.gas_price)
+    computation.stack.push(computation.transaction_context.gas_price)
 
 
 def extcodesize(computation):
@@ -180,4 +180,4 @@ def returndatacopy(computation):
 
 
 def sighash(computation):
-    computation.stack.push(computation.msg.sig_hash)
+    computation.stack.push(computation.transaction_context.sig_hash)
