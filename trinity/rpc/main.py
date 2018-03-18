@@ -2,21 +2,11 @@ import json
 import logging
 from typing import Dict  # noqa: F401
 
-from evm.exceptions import (
-    ValidationError,
-)
+from evm.exceptions import (ValidationError,)
 
-from trinity.rpc.modules import (  # noqa: F401
-    Eth,
-    EVM,
-    RPCModule,
-)
+from trinity.rpc.modules import (Eth, EVM, RPCModule)  # noqa: F401
 
-REQUIRED_REQUEST_KEYS = {
-    'id',
-    'jsonrpc',
-    'method',
-}
+REQUIRED_REQUEST_KEYS = {'id', 'jsonrpc', 'method'}
 
 
 def validate_request(request):
@@ -26,19 +16,17 @@ def validate_request(request):
 
 
 def generate_response(request, result, error):
-    response = {
-        'id': request.get('id', -1),
-        'jsonrpc': request.get('jsonrpc', "2.0"),
-    }
-
+    response = {'id': request.get('id', -1), 'jsonrpc': request.get('jsonrpc', "2.0")}
     if error is None:
         response['result'] = result
     elif result is not None:
-        raise ValueError("Must not supply both a result and an error for JSON-RPC response")
+        raise ValueError(
+            "Must not supply both a result and an error for JSON-RPC response"
+        )
+
     else:
         # only error is not None
         response['error'] = str(error)
-
     return json.dumps(response)
 
 
@@ -52,10 +40,7 @@ class RPCServer:
     :meth:`RPCServer.eth_getBlockByHash`.
     '''
     chain = None
-    module_classes = (
-        Eth,
-        EVM,
-    )
+    module_classes = (Eth, EVM)
 
     def __init__(self, chain):
         self.modules = {}  # type: Dict[str, RPCModule]
@@ -63,24 +48,26 @@ class RPCServer:
         for M in self.module_classes:
             self.modules[M.__name__.lower()] = M(chain)
         if len(self.modules) != len(self.module_classes):
-            raise ValueError("apparent name conflict in RPC module_classes", self.module_classes)
+            raise ValueError(
+                "apparent name conflict in RPC module_classes", self.module_classes
+            )
 
     def _lookup_method(self, rpc_method):
         method_pieces = rpc_method.split('_')
-
         if len(method_pieces) != 2:
             # This check provides a security guarantee: that it's impossible to invoke
             # a method with an underscore in it. Only public methods on the modules
             # will be callable by external clients.
             raise ValueError("Invalid RPC method: %r" % rpc_method)
-        module_name, method_name = method_pieces
 
+        module_name, method_name = method_pieces
         if module_name not in self.modules:
             raise ValueError("Module unavailable: %r" % module_name)
-        module = self.modules[module_name]
 
+        module = self.modules[module_name]
         try:
             return getattr(module, method_name)
+
         except AttributeError:
             raise ValueError("Method not implemented: %r" % rpc_method)
 
@@ -91,28 +78,29 @@ class RPCServer:
         '''
         try:
             validate_request(request)
-
             if request.get('jsonrpc', None) != '2.0':
                 raise NotImplementedError("Only the 2.0 jsonrpc protocol is supported")
 
             method = self._lookup_method(request['method'])
             params = request.get('params', [])
             result = method(*params)
-
             if request['method'] == 'evm_resetToGenesisFixture':
                 self.chain, result = result, True
-
         except NotImplementedError as exc:
             error = "Method not implemented: %r %s" % (request['method'], exc)
             return None, error
+
         except ValidationError as exc:
             logging.debug("Validation error while executing RPC method", exc_info=True)
             return None, exc
+
         except Exception as exc:
             logging.info("RPC method caused exception", exc_info=True)
             if debug:
                 raise Exception("failure during rpc call with %s" % request) from exc
+
             return None, exc
+
         else:
             return result, None
 

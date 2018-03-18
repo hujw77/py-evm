@@ -1,27 +1,19 @@
 import rlp
 
 from evm.constants import (
-    GAS_TX,
-    GAS_TXCREATE,
-    GAS_TXDATAZERO,
-    GAS_TXDATANONZERO,
-    CREATE_CONTRACT_ADDRESS,
+    GAS_TX, GAS_TXCREATE, GAS_TXDATAZERO, GAS_TXDATANONZERO, CREATE_CONTRACT_ADDRESS
 )
-from evm.validation import (
-    validate_lt_secpk1n2,
-)
+from evm.validation import (validate_lt_secpk1n2,)
 
 from evm.vm.forks.frontier.transactions import (
-    FrontierTransaction,
-    FrontierUnsignedTransaction,
+    FrontierTransaction, FrontierUnsignedTransaction
 )
 
-from evm.utils.transactions import (
-    create_transaction_signature,
-)
+from evm.utils.transactions import (create_transaction_signature,)
 
 
 class HomesteadTransaction(FrontierTransaction):
+
     def validate(self):
         super(HomesteadTransaction, self).validate()
         validate_lt_secpk1n2(self.s, title="Transaction.s")
@@ -30,14 +22,16 @@ class HomesteadTransaction(FrontierTransaction):
         return _get_homestead_intrinsic_gas(self)
 
     def get_message_for_signing(self):
-        return rlp.encode(HomesteadUnsignedTransaction(
-            nonce=self.nonce,
-            gas_price=self.gas_price,
-            gas=self.gas,
-            to=self.to,
-            value=self.value,
-            data=self.data,
-        ))
+        return rlp.encode(
+            HomesteadUnsignedTransaction(
+                nonce=self.nonce,
+                gas_price=self.gas_price,
+                gas=self.gas,
+                to=self.to,
+                value=self.value,
+                data=self.data,
+            )
+        )
 
     @classmethod
     def create_unsigned_transaction(cls, nonce, gas_price, gas, to, value, data):
@@ -45,6 +39,7 @@ class HomesteadTransaction(FrontierTransaction):
 
 
 class HomesteadUnsignedTransaction(FrontierUnsignedTransaction):
+
     def as_signed_transaction(self, private_key):
         v, r, s = create_transaction_signature(self, private_key)
         return HomesteadTransaction(
@@ -69,7 +64,9 @@ def _get_homestead_intrinsic_gas(transaction):
         create_cost = 0
     return (
         GAS_TX +
-        num_zero_bytes * GAS_TXDATAZERO +
-        num_non_zero_bytes * GAS_TXDATANONZERO +
+        num_zero_bytes *
+        GAS_TXDATAZERO +
+        num_non_zero_bytes *
+        GAS_TXDATANONZERO +
         create_cost
     )

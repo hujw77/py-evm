@@ -1,12 +1,7 @@
 import pytest
 
-from evm.vm.gas_meter import (
-    GasMeter,
-)
-from evm.exceptions import (
-    ValidationError,
-    OutOfGas,
-)
+from evm.vm.gas_meter import (GasMeter,)
+from evm.exceptions import (ValidationError, OutOfGas)
 
 
 @pytest.fixture(params=[10, 100, 999])
@@ -22,7 +17,7 @@ def test_start_gas_on_instantiation(value):
     assert meter.gas_refunded == 0
 
 
-@pytest.mark.parametrize("value", (-1, 2**256, 'a'))
+@pytest.mark.parametrize("value", (-1, 2 ** 256, 'a'))
 def test_instantiation_invalid_value(value):
     with pytest.raises(ValidationError):
         GasMeter(value)

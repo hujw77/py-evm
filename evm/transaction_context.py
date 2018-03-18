@@ -1,7 +1,4 @@
-from evm.validation import (
-    validate_canonical_address,
-    validate_uint256,
-)
+from evm.validation import (validate_canonical_address, validate_uint256)
 
 
 class BaseTransactionContext:

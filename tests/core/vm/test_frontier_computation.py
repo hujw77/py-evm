@@ -1,18 +1,10 @@
 import pytest
 
-from evm.transaction_context import (
-    BaseTransactionContext,
-)
-from evm.vm import (
-    Message,
-)
-from evm.vm.forks.frontier.computation import (
-    FrontierComputation,
-)
+from evm.transaction_context import (BaseTransactionContext,)
+from evm.vm import (Message,)
+from evm.vm.forks.frontier.computation import (FrontierComputation,)
 
-from eth_utils import (
-    to_canonical_address,
-)
+from eth_utils import (to_canonical_address,)
 
 from tests.core.fixtures import chain_without_block_validation  # noqa: F401
 
@@ -32,10 +24,7 @@ def state(chain_without_block_validation):
 
 @pytest.fixture
 def transaction_context():
-    tx_context = BaseTransactionContext(
-        gas_price=1,
-        origin=CANONICAL_ADDRESS_B,
-    )
+    tx_context = BaseTransactionContext(gas_price=1, origin=CANONICAL_ADDRESS_B)
     return tx_context
 
 
@@ -55,9 +44,7 @@ def message():
 @pytest.fixture
 def computation(message, transaction_context, state):
     computation = FrontierComputation(
-        vm_state=state,
-        message=message,
-        transaction_context=transaction_context,
+        vm_state=state, message=message, transaction_context=transaction_context
     )
     return computation
 
@@ -65,11 +52,7 @@ def computation(message, transaction_context, state):
 @pytest.fixture
 def child_message(computation):
     child_message = computation.prepare_child_message(
-        gas=100,
-        to=CANONICAL_ADDRESS_B,
-        value=200,
-        data=b'',
-        code=b''
+        gas=100, to=CANONICAL_ADDRESS_B, value=200, data=b'', code=b''
     )
     return child_message
 
@@ -77,9 +60,7 @@ def child_message(computation):
 @pytest.fixture
 def child_computation(computation, child_message):
     child_computation = computation.generate_child_computation(
-        computation.vm_state,
-        child_message,
-        computation.transaction_context,
+        computation.vm_state, child_message, computation.transaction_context
     )
     return child_computation
 

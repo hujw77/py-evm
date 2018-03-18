@@ -5,13 +5,8 @@ from evm.chains.ropsten import ROPSTEN_GENESIS_HEADER
 from evm.db.backends.level import LevelDB
 from evm.db.chain import ChainDB
 
-from trinity.chains import (
-    initialize_data_dir,
-    is_database_initialized,
-)
-from trinity.utils.chains import (
-    ChainConfig,
-)
+from trinity.chains import (initialize_data_dir, is_database_initialized)
+from trinity.utils.chains import (ChainConfig,)
 
 
 @pytest.fixture

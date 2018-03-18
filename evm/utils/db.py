@@ -1,12 +1,6 @@
-from trie import (
-    BinaryTrie,
-    HexaryTrie,
-)
+from trie import (BinaryTrie, HexaryTrie)
 
-from evm.constants import (
-    BLANK_ROOT_HASH,
-    EMPTY_SHA3,
-)
+from evm.constants import (BLANK_ROOT_HASH, EMPTY_SHA3)
 
 from evm.rlp.headers import BlockHeader
 
@@ -57,11 +51,11 @@ def get_empty_root_hash(db: 'BaseChainDB') -> bytes:
     elif db.trie_class is BinaryTrie:
         root_hash = EMPTY_SHA3
     elif db.trie_class is None:
-        raise AttributeError(
-            "BaseChainDB must declare a trie_class."
-        )
+        raise AttributeError("BaseChainDB must declare a trie_class.")
+
     else:
         raise NotImplementedError(
             "db.trie_class {} is not supported.".format(db.trie_class)
         )
+
     return root_hash

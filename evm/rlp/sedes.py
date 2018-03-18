@@ -1,12 +1,5 @@
-from rlp.sedes import (
-    BigEndianInt,
-    Binary,
-    CountableList,
-)
-from rlp.exceptions import (
-    ListSerializationError,
-    ListDeserializationError,
-)
+from rlp.sedes import (BigEndianInt, Binary, CountableList)
+from rlp.exceptions import (ListSerializationError, ListDeserializationError)
 
 from typing import List
 
@@ -22,12 +15,14 @@ class AccessListElement(CountableList):
             raise ListSerializationError(
                 "Access list elements need to specify at least an address"
             )
+
         elif len(obj[0]) != 20:
             raise ListSerializationError(
                 "Access list elements need to start with a 20 byte address (got {0} bytes)".format(
                     len(obj[0])
                 )
             )
+
         return result
 
     def deserialize(self, serial: List[bytes]) -> List[bytes]:
@@ -36,12 +31,14 @@ class AccessListElement(CountableList):
             raise ListDeserializationError(
                 "Access list elements need to specify at least an address"
             )
+
         elif len(result[0]) != 20:
             raise ListDeserializationError(
                 "Access list elements need to start with a 20 byte address (got {0} bytes)".format(
                     len(result[0])
                 )
             )
+
         return result
 
 

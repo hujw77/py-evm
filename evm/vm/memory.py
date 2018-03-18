@@ -2,15 +2,10 @@ import itertools
 import logging
 
 from evm.validation import (
-    validate_is_bytes,
-    validate_length,
-    validate_lte,
-    validate_uint256,
+    validate_is_bytes, validate_length, validate_lte, validate_uint256
 )
 
-from evm.utils.numeric import (
-    ceil32,
-)
+from evm.utils.numeric import (ceil32,)
 
 
 class Memory(object):
@@ -47,13 +42,10 @@ class Memory(object):
             validate_is_bytes(value)
             validate_length(value, length=size)
             validate_lte(start_position + size, maximum=len(self))
-
             if len(self.bytes) < start_position + size:
-                self.bytes.extend(itertools.repeat(
-                    0,
-                    len(self.bytes) - (start_position + size),
-                ))
-
+                self.bytes.extend(
+                    itertools.repeat(0, len(self.bytes) - (start_position + size))
+                )
             for idx, v in enumerate(value):
                 self.bytes[start_position + idx] = v
 

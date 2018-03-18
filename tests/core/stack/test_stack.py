@@ -1,18 +1,8 @@
 import pytest
 
-from evm.vm.stack import (
-    Stack,
-)
-from evm.exceptions import (
-    FullStack,
-    InsufficientStack,
-    ValidationError,
-)
-from evm.constants import (
-    UINT256,
-    BYTES,
-    SECPK1_N,
-)
+from evm.vm.stack import (Stack,)
+from evm.exceptions import (FullStack, InsufficientStack, ValidationError)
+from evm.constants import (UINT256, BYTES, SECPK1_N)
 
 
 @pytest.fixture
@@ -26,11 +16,11 @@ def stack():
         (-1, False),
         (0, True),
         (1, True),
-        (2**256 - 1, True),
-        (2**256, False),
+        (2 ** 256 - 1, True),
+        (2 ** 256, False),
         ('abcde', False),
         (b'abcde', True),
-        (b'100100100100100100100100100100100', False),
+        (b'100100100100100100100100100100100', False)
     )
 )
 def test_push_only_pushes_valid_stack_items(stack, value, is_valid):
@@ -61,11 +51,7 @@ def test_dup_does_not_allow_stack_to_exceed_1024_items(stack):
 
 @pytest.mark.parametrize(
     ("items,type_hint"),
-    (
-        ([1], UINT256),
-        ([1, 2, 3], UINT256),
-        ([b'1', b'10', b'101', b'1010'], BYTES)
-    )
+    (([1], UINT256), ([1, 2, 3], UINT256), ([b'1', b'10', b'101', b'1010'], BYTES)),
 )
 def test_pop_returns_latest_stack_item(stack, items, type_hint):
     for each in items:
@@ -75,13 +61,11 @@ def test_pop_returns_latest_stack_item(stack, items, type_hint):
 
 @pytest.mark.parametrize(
     ("value,type_hint,type,is_valid"),
-    (
-        (1, UINT256, int, True),
-        (b'101', BYTES, bytes, True),
-        (1, SECPK1_N, int, False)
-    )
+    ((1, UINT256, int, True), (b'101', BYTES, bytes, True), (1, SECPK1_N, int, False)),
 )
-def test_pop_typecasts_correctly_based_off_type_hint(stack, value, type_hint, type, is_valid):
+def test_pop_typecasts_correctly_based_off_type_hint(
+    stack, value, type_hint, type, is_valid
+):
     stack.push(value)
     if is_valid:
         assert isinstance(stack.pop(type_hint=type_hint), type)

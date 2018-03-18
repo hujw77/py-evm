@@ -1,13 +1,7 @@
 import asyncio
 import logging
 import time
-from typing import (  # noqa: F401
-    Any,
-    cast,
-    Dict,
-    List,
-    Set,
-)
+from typing import (Any, cast, Dict, List, Set)  # noqa: F401
 
 import rlp
 
@@ -15,16 +9,9 @@ from trie.sync import HexaryTrieSync
 from trie.exceptions import SyncRequestAlreadyProcessed
 
 from eth_keys import datatypes  # noqa: F401
-from eth_utils import (
-    decode_hex,
-    encode_hex,
-    keccak,
-)
+from eth_utils import (decode_hex, encode_hex, keccak)
 
-from evm.constants import (
-    BLANK_ROOT_HASH,
-    EMPTY_SHA3,
-)
+from evm.constants import (BLANK_ROOT_HASH, EMPTY_SHA3)
 from evm.db.backends.base import BaseDB
 from evm.rlp.accounts import Account
 
@@ -75,6 +62,7 @@ class StateDownloader(PeerPoolSubscriber):
                 # Either our cancel token or the peer's has been triggered, so break out of the
                 # loop.
                 break
+
             if isinstance(cmd, eth.NodeData):
                 self.logger.debug("Processing NodeData with %d entries", len(msg))
                 for node in msg:
@@ -98,7 +86,9 @@ class StateDownloader(PeerPoolSubscriber):
         self.cancel_token.trigger()
         self.peer_pool.unsubscribe(self)
         while self._running_peers:
-            self.logger.debug("Waiting for %d running peers to finish", len(self._running_peers))
+            self.logger.debug(
+                "Waiting for %d running peers to finish", len(self._running_peers)
+            )
             await asyncio.sleep(0.1)
 
     async def request_next_batch(self):
@@ -110,6 +100,7 @@ class StateDownloader(PeerPoolSubscriber):
             # while.
             self.logger.debug("Scheduler queue is empty, not requesting any nodes")
             return
+
         self.logger.debug("Requesting %d trie nodes", len(requests))
         await self.request_nodes([request.node_key for request in requests])
 
@@ -129,20 +120,21 @@ class StateDownloader(PeerPoolSubscriber):
                 timed_out.append(node_key)
         if not timed_out:
             return
+
         self.logger.debug("Re-requesting %d trie nodes", len(timed_out))
         await self.request_nodes(timed_out)
 
     async def run(self):
-        self.logger.info("Starting state sync for root hash %s", encode_hex(self.root_hash))
+        self.logger.info(
+            "Starting state sync for root hash %s", encode_hex(self.root_hash)
+        )
         while self.scheduler.has_pending_requests and not self.cancel_token.triggered:
             # Request new nodes if we haven't reached the limit of pending nodes.
             if len(self._pending_nodes) < self._max_pending:
                 await self.request_next_batch()
-
             # Retry pending nodes that timed out.
             if self._pending_nodes:
                 await self.retry_timedout()
-
             if len(self._pending_nodes) > self._max_pending:
                 # Slow down if we've reached the limit of pending nodes.
                 self.logger.debug("Pending trie nodes limit reached, sleeping a bit")
@@ -152,19 +144,22 @@ class StateDownloader(PeerPoolSubscriber):
                 # nodes we may have received already. Otherwise we spin too fast and don't process
                 # received nodes often enough.
                 await asyncio.sleep(0)
-
             self._maybe_report_progress()
-
-        self.logger.info("Finished state sync with root hash %s", encode_hex(self.root_hash))
+        self.logger.info(
+            "Finished state sync with root hash %s", encode_hex(self.root_hash)
+        )
 
     def _maybe_report_progress(self):
         if (time.time() - self._last_report_time) >= self._report_interval:
             self._last_report_time = time.time()
             self.logger.info("Nodes processed: %d", self._total_processed_nodes)
             self.logger.info(
-                "Nodes requested but not received yet: %d", len(self._pending_nodes))
+                "Nodes requested but not received yet: %d", len(self._pending_nodes)
+            )
             self.logger.info(
-                "Nodes scheduled but not requested yet: %d", len(self.scheduler.requests))
+                "Nodes scheduled but not requested yet: %d",
+                len(self.scheduler.requests),
+            )
 
 
 class StateSync(HexaryTrieSync):
@@ -176,7 +171,9 @@ class StateSync(HexaryTrieSync):
         if account.storage_root != BLANK_ROOT_HASH:
             self.schedule(account.storage_root, parent, depth, leaf_callback=None)
         if account.code_hash != EMPTY_SHA3:
-            self.schedule(account.code_hash, parent, depth, leaf_callback=None, is_raw=True)
+            self.schedule(
+                account.code_hash, parent, depth, leaf_callback=None, is_raw=True
+            )
 
 
 def _test():
@@ -188,24 +185,24 @@ def _test():
     from evm.db.backends.level import LevelDB
     from evm.db.backends.memory import MemoryDB
     from tests.p2p.integration_test_helpers import FakeAsyncChainDB
-    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
+    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
     parser = argparse.ArgumentParser()
     parser.add_argument('-db', type=str, required=True)
-    parser.add_argument('-root-hash', type=str, required=True, help='Hex encoded root hash')
+    parser.add_argument(
+        '-root-hash', type=str, required=True, help='Hex encoded root hash'
+    )
     args = parser.parse_args()
-
     chaindb = FakeAsyncChainDB(MemoryDB())
     chaindb.persist_header(ROPSTEN_GENESIS_HEADER)
     peer_pool = HardCodedNodesPeerPool(
-        ETHPeer, chaindb, RopstenChain.network_id, ecies.generate_privkey())
+        ETHPeer, chaindb, RopstenChain.network_id, ecies.generate_privkey()
+    )
     asyncio.ensure_future(peer_pool.run())
-
     state_db = LevelDB(args.db)
     root_hash = decode_hex(args.root_hash)
     downloader = StateDownloader(state_db, root_hash, peer_pool)
     loop = asyncio.get_event_loop()
-
     for sig in [signal.SIGINT, signal.SIGTERM]:
         loop.add_signal_handler(sig, downloader.cancel_token.trigger)
 

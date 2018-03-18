@@ -1,4 +1,5 @@
-from tests.core.fixtures import (  # noqa: F401
+from tests.core.fixtures import (
+    # noqa: F401
     # Constant
     funded_address,
     funded_address_private_key,

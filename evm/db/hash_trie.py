@@ -1,6 +1,4 @@
-from eth_utils import (
-    keccak,
-)
+from eth_utils import (keccak,)
 
 
 class HashTrie(object):

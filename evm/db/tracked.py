@@ -23,7 +23,6 @@ class TrackedDB(BaseDB):
     access_logs.reads: the dict of read key-value
     access_logs.writes: the dict of written key-value
     """
-
     wrapped_db = None
     access_logs = None
 

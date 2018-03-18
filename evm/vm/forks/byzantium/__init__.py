@@ -8,7 +8,6 @@ from .headers import (
 from .blocks import ByzantiumBlock
 from .vm_state import ByzantiumVMState
 
-
 ByzantiumVM = SpuriousDragonVM.configure(
     __name__='ByzantiumVM',
     # classes

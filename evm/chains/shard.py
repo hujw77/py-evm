@@ -1,6 +1,4 @@
-from .base import (
-    Chain,
-)
+from .base import (Chain,)
 
 
 class Shard(Chain):

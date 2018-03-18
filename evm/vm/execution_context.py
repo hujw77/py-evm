@@ -1,7 +1,6 @@
 class ExecutionContext:
     # For shard chain, refer to the shard coinbase.
     _coinbase = None
-
     # For shard chian, block info of period_start_prevhash.
     _timestamp = None
     _number = None
@@ -10,13 +9,8 @@ class ExecutionContext:
     _prev_hashes = None
 
     def __init__(
-            self,
-            coinbase,
-            timestamp,
-            block_number,
-            difficulty,
-            gas_limit,
-            prev_hashes):
+        self, coinbase, timestamp, block_number, difficulty, gas_limit, prev_hashes
+    ):
         self._coinbase = coinbase
         self._timestamp = timestamp
         self._block_number = block_number

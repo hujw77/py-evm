@@ -1,13 +1,7 @@
 import pytest
 
-from evm.precompiles.modexp import (
-    _modexp,
-    _compute_modexp_gas_fee,
-)
-from evm.utils.hexadecimal import (
-    decode_hex,
-)
-
+from evm.precompiles.modexp import (_modexp, _compute_modexp_gas_fee)
+from evm.utils.hexadecimal import (decode_hex,)
 
 EIP198_VECTOR_A = decode_hex(
     "0000000000000000000000000000000000000000000000000000000000000001"
@@ -17,7 +11,6 @@ EIP198_VECTOR_A = decode_hex(
     "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2e"
     "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f"
 )
-
 EIP198_VECTOR_B = decode_hex(
     "0000000000000000000000000000000000000000000000000000000000000000"
     "0000000000000000000000000000000000000000000000000000000000000020"
@@ -25,7 +18,6 @@ EIP198_VECTOR_B = decode_hex(
     "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2e"
     "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f"
 )
-
 EIP198_VECTOR_C = decode_hex(
     "0000000000000000000000000000000000000000000000000000000000000000"
     "0000000000000000000000000000000000000000000000000000000000000020"
@@ -51,12 +43,7 @@ def test_modexp_gas_fee_calcultation(data, expected):
 
 
 @pytest.mark.parametrize(
-    'data,expected',
-    (
-        (EIP198_VECTOR_A, 1),
-        (EIP198_VECTOR_B, 0),
-        (EIP198_VECTOR_C, 0),
-    ),
+    'data,expected', ((EIP198_VECTOR_A, 1), (EIP198_VECTOR_B, 0), (EIP198_VECTOR_C, 0))
 )
 def test_modexp_result(data, expected):
     actual = _modexp(data)

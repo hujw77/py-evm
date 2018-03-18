@@ -1,7 +1,4 @@
-from abc import (
-    ABCMeta,
-    abstractmethod
-)
+from abc import (ABCMeta, abstractmethod)
 
 
 class BaseDB(metaclass=ABCMeta):
@@ -30,7 +27,7 @@ class BaseDB(metaclass=ABCMeta):
             "The `delete` method must be implemented by subclasses of BaseDB"
         )
 
-    #
+    # 
     # Dictionary API
     #
     def __getitem__(self, key):

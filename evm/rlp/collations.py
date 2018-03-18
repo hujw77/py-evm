@@ -1,13 +1,8 @@
-from abc import (
-    ABCMeta,
-    abstractmethod
-)
+from abc import (ABCMeta, abstractmethod)
 
 import rlp
 
-from evm.utils.datatypes import (
-    Configurable,
-)
+from evm.utils.datatypes import (Configurable,)
 
 from evm.db.chain import BaseChainDB
 
@@ -28,12 +23,17 @@ class BaseCollation(rlp.Serializable, Configurable, metaclass=ABCMeta):
     @classmethod
     def get_transaction_class(cls) -> BaseShardingTransaction:
         if cls.transaction_class is None:
-            raise AttributeError("Collation subclasses must declare a transaction_class")
+            raise AttributeError(
+                "Collation subclasses must declare a transaction_class"
+            )
+
         return cls.transaction_class
 
     @classmethod
     @abstractmethod
-    def from_header(cls, header: CollationHeader, chaindb: BaseChainDB) -> 'BaseCollation':
+    def from_header(
+        cls, header: CollationHeader, chaindb: BaseChainDB
+    ) -> 'BaseCollation':
         """
         Returns the collation denoted by the given collation header.
         """
@@ -61,9 +61,10 @@ class BaseCollation(rlp.Serializable, Configurable, metaclass=ABCMeta):
 
     def __repr__(self) -> str:
         return '<{class_name}(#{b})>'.format(
-            class_name=self.__class__.__name__,
-            b=str(self),
+            class_name=self.__class__.__name__, b=str(self)
         )
 
     def __str__(self) -> str:
-        return "Collation #{b.expected_period_number} (shard #{b.header.shard_id})".format(b=self)
+        return "Collation #{b.expected_period_number} (shard #{b.header.shard_id})".format(
+            b=self
+        )

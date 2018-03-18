@@ -2,12 +2,8 @@ from __future__ import unicode_literals
 
 import pytest
 
-from evm.exceptions import (
-    ValidationError,
-)
-from evm.constants import (
-    SECPK1_N,
-)
+from evm.exceptions import (ValidationError,)
+from evm.constants import (SECPK1_N,)
 from evm.validation import (
     validate_access_list,
     validate_block_number,
@@ -31,7 +27,6 @@ from evm.validation import (
     validate_vm_block_numbers,
     validate_word,
 )
-
 
 byte = b"\x00"
 
@@ -130,7 +125,7 @@ def test_validate_is_boolean(value, is_valid):
         (set(['A', 'B', 1, 2]), 4, True),
         ('abcde', 4, False),
         (b'123', 3, True),
-        (range(1, 10), 9, True)
+        (range(1, 10), 9, True),
     ),
 )
 def test_validate_length(value, length, is_valid):
@@ -163,12 +158,7 @@ def test_validate_length_lte(value, maximum_length, is_valid):
 
 @pytest.mark.parametrize(
     "value,minimum,is_valid",
-    (
-        (1, 2, False),
-        (1, 1, True),
-        ('a', 'a', False),
-        (3, 2, True),
-    ),
+    ((1, 2, False), (1, 1, True), ('a', 'a', False), (3, 2, True)),
 )
 def test_validate_gte(value, minimum, is_valid):
     if is_valid:
@@ -180,12 +170,7 @@ def test_validate_gte(value, minimum, is_valid):
 
 @pytest.mark.parametrize(
     "value,minimum,is_valid",
-    (
-        (1, 2, False),
-        (1, 1, False),
-        ('a', 'a', False),
-        (3, 2, True),
-    ),
+    ((1, 2, False), (1, 1, False), ('a', 'a', False), (3, 2, True)),
 )
 def test_validate_gt(value, minimum, is_valid):
     if is_valid:
@@ -197,12 +182,7 @@ def test_validate_gt(value, minimum, is_valid):
 
 @pytest.mark.parametrize(
     "value,maximum,is_valid",
-    (
-        (1, 2, True),
-        (1, 1, True),
-        ('a', 'a', False),
-        (3, 2, False),
-    ),
+    ((1, 2, True), (1, 1, True), ('a', 'a', False), (3, 2, False)),
 )
 def test_validate_lte(value, maximum, is_valid):
     if is_valid:
@@ -214,12 +194,7 @@ def test_validate_lte(value, maximum, is_valid):
 
 @pytest.mark.parametrize(
     "value,maximum,is_valid",
-    (
-        (1, 2, True),
-        (1, 1, False),
-        ('a', 'a', False),
-        (3, 2, False),
-    ),
+    ((1, 2, True), (1, 1, False), ('a', 'a', False), (3, 2, False)),
 )
 def test_validate_lt(value, maximum, is_valid):
     if is_valid:
@@ -247,12 +222,7 @@ def test_validate_canonical_address(value, is_valid):
 
 
 @pytest.mark.parametrize(
-    "value,multiple_of,is_valid",
-    (
-        (1, 1, True),
-        (4, 2, True),
-        (773, 3, False),
-    ),
+    "value,multiple_of,is_valid", ((1, 1, True), (4, 2, True), (773, 3, False))
 )
 def test_validate_multiple_of(value, multiple_of, is_valid):
     if is_valid:
@@ -273,7 +243,7 @@ def test_validate_multiple_of(value, multiple_of, is_valid):
 )
 def test_validate_word(value, is_valid):
     if is_valid:
-            validate_word(value)
+        validate_word(value)
     else:
         with pytest.raises(ValidationError):
             validate_word(value)
@@ -287,13 +257,13 @@ def test_validate_word(value, is_valid):
         (-1, False),
         (0, True),
         (1, True),
-        (2**256, False),
-        ((2**256) - 1, True),
-    ),
+        (2 ** 256, False),
+        ((2 ** 256) - 1, True)
+    )
 )
 def test_validate_uint256(value, is_valid):
     if is_valid:
-            validate_uint256(value)
+        validate_uint256(value)
     else:
         with pytest.raises(ValidationError):
             validate_uint256(value)
@@ -310,13 +280,13 @@ def test_validate_uint256(value, is_valid):
         (-1, False),
         (0, True),
         (10, True),
-        (2**256, False),
-        ((2**256) - 1, True),
-    ),
+        (2 ** 256, False),
+        ((2 ** 256) - 1, True)
+    )
 )
 def test_validate_stack_item(value, is_valid):
     if is_valid:
-            validate_stack_item(value)
+        validate_stack_item(value)
     else:
         with pytest.raises(ValidationError):
             validate_stack_item(value)
@@ -324,17 +294,11 @@ def test_validate_stack_item(value, is_valid):
 
 @pytest.mark.parametrize(
     "value,is_valid",
-    (
-        (-1, True),
-        (0, True),
-        (1, True),
-        (SECPK1_N - 1, True),
-        (SECPK1_N, False),
-    ),
+    ((-1, True), (0, True), (1, True), (SECPK1_N - 1, True), (SECPK1_N, False)),
 )
 def test_validate_lt_secpk1n(value, is_valid):
     if is_valid:
-            validate_lt_secpk1n(value)
+        validate_lt_secpk1n(value)
     else:
         with pytest.raises(ValidationError):
             validate_lt_secpk1n(value)
@@ -352,7 +316,7 @@ def test_validate_lt_secpk1n(value, is_valid):
 )
 def test_validate_lt_secpk1n2(value, is_valid):
     if is_valid:
-            validate_lt_secpk1n2(value)
+        validate_lt_secpk1n2(value)
     else:
         with pytest.raises(ValidationError):
             validate_lt_secpk1n2(value)
@@ -394,7 +358,7 @@ def test_validate_block_number(block_number, is_valid):
 )
 def test_validate_vm_block_numbers(vm_block_numbers, is_valid):
     if is_valid:
-            validate_vm_block_numbers(vm_block_numbers)
+        validate_vm_block_numbers(vm_block_numbers)
     else:
         with pytest.raises(ValidationError):
             validate_vm_block_numbers(vm_block_numbers)
@@ -426,12 +390,7 @@ def test_validate_transaction_access_list(value, is_valid):
 
 @pytest.mark.parametrize(
     "value,is_valid",
-    (
-        ([], True),
-        ([b'asdf', b'fdsa'], True),
-        (['asdf'], False),
-        ([0], False),
-    )
+    (([], True), ([b'asdf', b'fdsa'], True), (['asdf'], False), ([0], False)),
 )
 def test_access_list(value, is_valid):
     if is_valid:

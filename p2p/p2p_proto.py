@@ -5,15 +5,9 @@ from cytoolz import assoc
 
 from rlp import sedes
 
-from p2p.protocol import (
-    Command,
-    Protocol,
-    _DecodedMsgType,
-)
+from p2p.protocol import (Command, Protocol, _DecodedMsgType)
 
-from .constants import (
-    CLIENT_VERSION_STRING,
-)
+from .constants import (CLIENT_VERSION_STRING,)
 
 
 class Hello(Command):
@@ -22,9 +16,12 @@ class Hello(Command):
     structure = [
         ('version', sedes.big_endian_int),
         ('client_version_string', sedes.binary),
-        ('capabilities', sedes.CountableList(sedes.List([sedes.binary, sedes.big_endian_int]))),
+        (
+            'capabilities',
+            sedes.CountableList(sedes.List([sedes.binary, sedes.big_endian_int])),
+        ),
         ('listen_port', sedes.big_endian_int),
-        ('remote_pubkey', sedes.binary)
+        ('remote_pubkey', sedes.binary),
     ]
 
 
@@ -53,12 +50,15 @@ class Disconnect(Command):
     def get_reason_name(self, reason_id: int) -> str:
         try:
             return DisconnectReason(reason_id).name
+
         except ValueError:
             return "unknown reason"
 
     def decode(self, data: bytes) -> _DecodedMsgType:
         raw_decoded = cast(Dict[str, int], super(Disconnect, self).decode(data))
-        return assoc(raw_decoded, 'reason_name', self.get_reason_name(raw_decoded['reason']))
+        return assoc(
+            raw_decoded, 'reason_name', self.get_reason_name(raw_decoded['reason'])
+        )
 
 
 class Ping(Command):
@@ -80,11 +80,13 @@ class P2PProtocol(Protocol):
         super(P2PProtocol, self).__init__(peer, cmd_id_offset=0)
 
     def send_handshake(self):
-        data = dict(version=self.version,
-                    client_version_string=CLIENT_VERSION_STRING,
-                    capabilities=self.peer.capabilities,
-                    listen_port=self.peer.listen_port,
-                    remote_pubkey=self.peer.privkey.public_key.to_bytes())
+        data = dict(
+            version=self.version,
+            client_version_string=CLIENT_VERSION_STRING,
+            capabilities=self.peer.capabilities,
+            listen_port=self.peer.listen_port,
+            remote_pubkey=self.peer.privkey.public_key.to_bytes(),
+        )
         header, body = Hello(self).encode(data)
         self.send(header, body)
 

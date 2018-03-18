@@ -4,7 +4,7 @@ from typing import Dict
 class MemoryDB:
     kv_store: Dict[bytes, bytes] = None
 
-    def __init__(self, kv_store: Dict[bytes, bytes]=None) -> None:
+    def __init__(self, kv_store: Dict[bytes, bytes] = None) -> None:
         if kv_store is None:
             self.kv_store = {}
         else:
@@ -22,7 +22,7 @@ class MemoryDB:
     def delete(self, key: bytes) -> None:
         del self.kv_store[key]
 
-    #
+    # 
     # Dictionary API
     #
     def __getitem__(self, key: bytes) -> bytes:

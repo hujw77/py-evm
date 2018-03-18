@@ -1,14 +1,6 @@
 import logging
 import struct
-from typing import (  # noqa: F401
-    Any,
-    Dict,
-    List,
-    Tuple,
-    Type,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import (Any, Dict, List, Tuple, Type, TYPE_CHECKING, Union)  # noqa: F401
 
 import rlp
 from rlp import sedes
@@ -17,17 +9,11 @@ from evm.constants import NULL_BYTE
 
 from p2p.utils import get_devp2p_cmd_id
 
-
 # Workaround for import cycles caused by type annotations:
 # http://mypy.readthedocs.io/en/latest/common_issues.html#import-cycles
 if TYPE_CHECKING:
     from p2p.peer import ChainInfo, BasePeer  # noqa: F401
-
-
-_DecodedMsgType = Union[
-    Dict[str, Any],
-    List[rlp.Serializable],
-]
+_DecodedMsgType = Union[Dict[str, Any], List[rlp.Serializable]]
 
 
 class Command:
@@ -45,15 +31,22 @@ class Command:
     def cmd_id(self) -> int:
         return self.proto.cmd_id_offset + self._cmd_id
 
-    def encode_payload(self, data: Union[_DecodedMsgType, sedes.CountableList]) -> bytes:
+    def encode_payload(
+        self, data: Union[_DecodedMsgType, sedes.CountableList]
+    ) -> bytes:
         if isinstance(data, dict):  # convert dict to ordered list
             if not isinstance(self.structure, list):
                 raise ValueError("Command.structure must be a list when data is a dict")
+
             expected_keys = sorted(name for name, _ in self.structure)
             data_keys = sorted(data.keys())
             if data_keys != expected_keys:
-                raise ValueError("Keys in data dict ({}) do not match expected keys ({})".format(
-                    data_keys, expected_keys))
+                raise ValueError(
+                    "Keys in data dict ({}) do not match expected keys ({})".format(
+                        data_keys, expected_keys
+                    )
+                )
+
             data = [data[name] for name, _ in self.structure]
         if isinstance(self.structure, sedes.CountableList):
             encoder = self.structure
@@ -66,20 +59,21 @@ class Command:
             decoder = self.structure
         else:
             decoder = sedes.List(
-                [type_ for _, type_ in self.structure], strict=self.decode_strict)
+                [type_ for _, type_ in self.structure], strict=self.decode_strict
+            )
         data = rlp.decode(rlp_data, sedes=decoder)
         if isinstance(self.structure, sedes.CountableList):
             return data
+
         return {
-            field_name: value
-            for ((field_name, _), value)
-            in zip(self.structure, data)
+            field_name: value for ((field_name, _), value) in zip(self.structure, data)
         }
 
     def decode(self, data: bytes) -> _DecodedMsgType:
         packet_type = get_devp2p_cmd_id(data)
         if packet_type != self.cmd_id:
             raise ValueError("Wrong packet type: {}".format(packet_type))
+
         return self.decode_payload(data[1:])
 
     def encode(self, data: _DecodedMsgType) -> Tuple[bytes, bytes]:
@@ -92,7 +86,6 @@ class Command:
         # Drop the first byte as, per the spec, frame_size must be a 3-byte int.
         header = struct.pack('>I', frame_size)[1:]
         header = _pad_to_16_byte_boundary(header)
-
         body = _pad_to_16_byte_boundary(enc_cmd_id + payload)
         return header, body
 

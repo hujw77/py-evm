@@ -7,18 +7,13 @@ import pytest
 @pytest.fixture(autouse=True, scope="session")
 def vm_logger():
     logger = logging.getLogger('evm')
-
     handler = logging.StreamHandler(sys.stdout)
-
     # level = logging.TRACE
     # level = logging.DEBUG
     level = logging.INFO
-
     logger.setLevel(level)
     handler.setLevel(level)
-
     logger.addHandler(handler)
-
     return logger
 
 

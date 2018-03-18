@@ -1,26 +1,13 @@
 from contextlib import contextmanager
-from cytoolz import (
-    identity,
-)
+from cytoolz import (identity,)
 
-from eth_utils import (
-    decode_hex,
-    encode_hex,
-    int_to_big_endian,
-    is_integer,
-)
+from eth_utils import (decode_hex, encode_hex, int_to_big_endian, is_integer)
 
 from trinity.rpc.format import (
-    block_to_dict,
-    header_to_dict,
-    format_params,
-    to_int_if_hex,
-    transaction_to_dict,
+    block_to_dict, header_to_dict, format_params, to_int_if_hex, transaction_to_dict
 )
 # Tell mypy to ignore this import as a workaround for https://github.com/python/mypy/issues/4049
-from trinity.rpc.modules import (  # type: ignore
-    RPCModule,
-)
+from trinity.rpc.modules import (RPCModule,)  # type: ignore
 
 
 def get_header(chain, at_block):
@@ -45,6 +32,7 @@ def state_at_block(chain, at_block, read_only=True):
     vm = chain.get_vm(at_header)
     if read_only:
         yield vm.state.read_only_state_db
+
     else:
         with vm.state.mutable_state_db() as state:
             yield state
@@ -54,6 +42,7 @@ def get_block_at_number(chain, at_block):
     if is_integer(at_block) and at_block >= 0:
         # optimization to avoid requesting block, then header, then block again
         return chain.get_canonical_block_by_number(at_block)
+
     else:
         at_header = get_header(chain, at_block)
         return chain.get_block_by_header(at_header)
@@ -83,7 +72,6 @@ class Eth(RPCModule):
     def getBalance(self, address, at_block):
         with state_at_block(self._chain, at_block) as state:
             balance = state.get_balance(address)
-
         return hex(balance)
 
     @format_params(decode_hex, identity)
@@ -115,7 +103,9 @@ class Eth(RPCModule):
     @format_params(decode_hex, to_int_if_hex, to_int_if_hex)
     def getStorageAt(self, address, position, at_block):
         if not is_integer(position) or position < 0:
-            raise TypeError("Position of storage must be a whole number, but was: %r" % position)
+            raise TypeError(
+                "Position of storage must be a whole number, but was: %r" % position
+            )
 
         with state_at_block(self._chain, at_block) as state:
             stored_val = state.get_storage(address, position)

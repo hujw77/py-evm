@@ -87,7 +87,9 @@ async def test_wait_cancel_pending_tasks_on_cancellation(event_loop):
     """Test that cancelling a pending CancelToken.wait() coroutine doesn't leave .wait()
     coroutines for any chained tokens behind.
     """
-    token = CancelToken('token').chain(CancelToken('token2')).chain(CancelToken('token3'))
+    token = CancelToken('token').chain(CancelToken('token2')).chain(
+        CancelToken('token3')
+    )
     token_wait_coroutine = token.wait()
     done, pending = await asyncio.wait([token_wait_coroutine], timeout=0.1)
     assert len(done) == 0
@@ -119,7 +121,9 @@ async def test_wait_with_token_future_exception(event_loop):
 @pytest.mark.asyncio
 async def test_wait_with_token_timeout():
     with pytest.raises(TimeoutError):
-        await wait_with_token(asyncio.sleep(0.02), token=CancelToken('token'), timeout=0.01)
+        await wait_with_token(
+            asyncio.sleep(0.02), token=CancelToken('token'), timeout=0.01
+        )
     await assert_only_current_task_not_done()
 
 

@@ -1,6 +1,4 @@
-from evm.chains.mainnet.constants import (
-    DAO_FORK_MAINNET_BLOCK
-)
+from evm.chains.mainnet.constants import (DAO_FORK_MAINNET_BLOCK)
 from evm.vm.forks.frontier import FrontierVM
 
 from .blocks import HomesteadBlock

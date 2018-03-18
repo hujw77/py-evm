@@ -1,11 +1,7 @@
-from cytoolz import (
-    merge,
-)
+from cytoolz import (merge,)
 
 from evm import precompiles
-from evm.utils.address import (
-    force_bytes_to_address,
-)
+from evm.utils.address import (force_bytes_to_address,)
 from evm.vm.forks.frontier.computation import FRONTIER_PRECOMPILES
 from evm.vm.forks.spurious_dragon.computation import SpuriousDragonComputation
 

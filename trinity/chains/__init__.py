@@ -1,6 +1,4 @@
-from multiprocessing.managers import (
-    BaseManager,
-)
+from multiprocessing.managers import (BaseManager,)
 import os
 from typing import Type
 
@@ -12,21 +10,13 @@ from evm.exceptions import CanonicalHeadNotFound
 from p2p import ecies
 from p2p.lightchain import LightChain
 
-from trinity.constants import (
-    ROPSTEN,
-)
+from trinity.constants import (ROPSTEN,)
 from trinity.db.chain import ChainDBProxy
 from trinity.db.base import DBProxy
-from trinity.utils.chains import (
-    ChainConfig,
-)
-from trinity.utils.xdg import (
-    is_under_xdg_trinity_root,
-)
+from trinity.utils.chains import (ChainConfig,)
+from trinity.utils.xdg import (is_under_xdg_trinity_root,)
 
-from .ropsten import (
-    RopstenLightChain,
-)
+from .ropsten import (RopstenLightChain,)
 
 
 def is_data_dir_initialized(chain_config: ChainConfig) -> bool:
@@ -60,6 +50,7 @@ def is_database_initialized(chaindb: ChainDB) -> bool:
     except CanonicalHeadNotFound:
         # empty chain database
         return False
+
     else:
         return True
 
@@ -71,13 +62,12 @@ def initialize_data_dir(chain_config: ChainConfig) -> None:
         # we don't lazily create the base dir for non-default base directories.
         raise ValueError(
             "The base chain directory provided does not exist: `{0}`".format(
-                chain_config.data_dir,
+                chain_config.data_dir
             )
         )
 
     # Chain data-dir
     os.makedirs(chain_config.database_dir, exist_ok=True)
-
     # Nodekey
     if chain_config.nodekey is None:
         nodekey = ecies.generate_privkey()
@@ -99,7 +89,9 @@ def initialize_database(chain_config: ChainConfig, chaindb: ChainDB) -> None:
             raise NotImplementedError("Not implemented for other chains yet")
 
 
-def get_chain_protocol_class(chain_config: ChainConfig, sync_mode: str) -> Type[LightChain]:
+def get_chain_protocol_class(
+    chain_config: ChainConfig, sync_mode: str
+) -> Type[LightChain]:
     """
     Retrieve the protocol class for the given chain and sync mode.
     """
@@ -122,9 +114,8 @@ def serve_chaindb(db: BaseDB, ipc_path: str) -> None:
     # https://github.com/python/typeshed/blob/85a788dbcaa5e9e9a62e55f15d44530cd28ba830/stdlib/3/multiprocessing/managers.pyi#L3
     DBManager.register('get_db', callable=lambda: db, proxytype=DBProxy)  # type: ignore
     DBManager.register(  # type: ignore
-        'get_chaindb', callable=lambda: chaindb, proxytype=ChainDBProxy)
-
+        'get_chaindb', callable=lambda: chaindb, proxytype=ChainDBProxy
+    )
     manager = DBManager(address=ipc_path)  # type: ignore
     server = manager.get_server()  # type: ignore
-
     server.serve_forever()  # type: ignore

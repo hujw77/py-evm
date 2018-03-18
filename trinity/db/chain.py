@@ -3,30 +3,27 @@ import functools
 
 from typing import Callable, Any
 
-
 # Typeshed definitions for multiprocessing.managers is incomplete, so ignore them for now:
 # https://github.com/python/typeshed/blob/85a788dbcaa5e9e9a62e55f15d44530cd28ba830/stdlib/3/multiprocessing/managers.pyi#L3
-from multiprocessing.managers import (  # type: ignore
-    BaseProxy,
-)
+from multiprocessing.managers import (BaseProxy,)  # type: ignore
 
 
 def async_method(method_name: str) -> Callable[..., Any]:
+
     async def method(self, *args, **kwargs):
         loop = asyncio.get_event_loop()
-
         return await loop.run_in_executor(
-            None,
-            functools.partial(self._callmethod, kwds=kwargs),
-            method_name,
-            args,
+            None, functools.partial(self._callmethod, kwds=kwargs), method_name, args
         )
+
     return method
 
 
 def sync_method(method_name: str) -> Callable[..., Any]:
+
     def method(self, *args, **kwargs):
         return self._callmethod(method_name, args, kwargs)
+
     return method
 
 
@@ -39,7 +36,6 @@ class ChainDBProxy(BaseProxy):
     coro_persist_header = async_method('persist_header')
     coro_persist_uncles = async_method('persist_uncles')
     coro_persist_trie_data_dict = async_method('persist_trie_data_dict')
-
     get_block_header_by_hash = sync_method('get_block_header_by_hash')
     get_canonical_head = sync_method('get_canonical_head')
     get_score = sync_method('get_score')

@@ -1,3 +1,1 @@
-from .main import (  # noqa: F401
-    main,
-)
+from .main import (main,)  # noqa: F401

@@ -1,18 +1,10 @@
 import logging
 
 from evm import constants
-from evm.exceptions import (
-    InsufficientStack,
-    FullStack,
-)
-from evm.validation import (
-    validate_stack_item,
-)
+from evm.exceptions import (InsufficientStack, FullStack)
+from evm.validation import (validate_stack_item,)
 
-from evm.utils.numeric import (
-    int_to_big_endian,
-    big_endian_to_int,
-)
+from evm.utils.numeric import (int_to_big_endian, big_endian_to_int)
 
 
 class Stack(object):
@@ -36,7 +28,6 @@ class Stack(object):
             raise FullStack('Stack limit reached')
 
         validate_stack_item(value)
-
         self.values.append(value)
 
     def pop(self, num_items=1, type_hint=None):
@@ -48,8 +39,10 @@ class Stack(object):
         try:
             if num_items == 1:
                 return next(self._pop(num_items, type_hint))
+
             else:
                 return tuple(self._pop(num_items, type_hint))
+
         except IndexError:
             raise InsufficientStack("No stack items")
 
@@ -59,21 +52,25 @@ class Stack(object):
                 value = self.values.pop()
                 if isinstance(value, int):
                     yield value
+
                 else:
                     yield big_endian_to_int(value)
+
             elif type_hint == constants.BYTES:
                 value = self.values.pop()
                 if isinstance(value, bytes):
                     yield value
+
                 else:
                     yield int_to_big_endian(value)
+
             elif type_hint == constants.ANY:
                 yield self.values.pop()
+
             else:
                 raise TypeError(
                     "Unknown type_hint: {0}.  Must be one of {1}".format(
-                        type_hint,
-                        ", ".join((constants.UINT256, constants.BYTES)),
+                        type_hint, ", ".join((constants.UINT256, constants.BYTES))
                     )
                 )
 
@@ -85,7 +82,9 @@ class Stack(object):
         try:
             self.values[-1], self.values[idx] = self.values[idx], self.values[-1]
         except IndexError:
-            raise InsufficientStack("Insufficient stack items for SWAP{0}".format(position))
+            raise InsufficientStack(
+                "Insufficient stack items for SWAP{0}".format(position)
+            )
 
     def dup(self, position):
         """
@@ -95,4 +94,6 @@ class Stack(object):
         try:
             self.push(self.values[idx])
         except IndexError:
-            raise InsufficientStack("Insufficient stack items for DUP{0}".format(position))
+            raise InsufficientStack(
+                "Insufficient stack items for DUP{0}".format(position)
+            )

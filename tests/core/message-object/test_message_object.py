@@ -2,41 +2,22 @@ from __future__ import unicode_literals
 
 import pytest
 
-from eth_utils import (
-    to_normalized_address,
-)
+from eth_utils import (to_normalized_address,)
 
-from evm.vm.message import (
-    Message,
-)
-from evm.constants import (
-    CREATE_CONTRACT_ADDRESS,
-)
-from evm.exceptions import (
-    ValidationError,
-)
-
+from evm.vm.message import (Message,)
+from evm.constants import (CREATE_CONTRACT_ADDRESS,)
+from evm.exceptions import (ValidationError,)
 
 ADDRESS_A = b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0"
 ADDRESS_B = b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf1"
 ADDRESS_C = b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf2"
 
 
-def _create_message(gas=1,
-                    to=ADDRESS_A,
-                    sender=ADDRESS_B,
-                    value=0,
-                    data=b"",
-                    code=b"",
-                    **kwargs):
+def _create_message(
+    gas=1, to=ADDRESS_A, sender=ADDRESS_B, value=0, data=b"", code=b"", **kwargs
+):
     return Message(
-        gas=gas,
-        to=to,
-        sender=sender,
-        value=value,
-        data=data,
-        code=code,
-        **kwargs
+        gas=gas, to=to, sender=sender, value=value, data=data, code=code, **kwargs
     )
 
 
@@ -58,7 +39,7 @@ def _create_message(gas=1,
         ({'code_address': to_normalized_address(ADDRESS_A)}, False),
         ({'should_transfer_value': 1}, False),
         ({'should_transfer_value': 0}, False),
-    )
+    ),
 )
 def test_parameter_validation(init_kwargs, is_valid):
     if is_valid:
@@ -91,6 +72,5 @@ def test_storage_address_uses_provided_address():
 def test_is_create_computed_property():
     create_message = _create_message(to=CREATE_CONTRACT_ADDRESS)
     assert create_message.is_create is True
-
     not_create_message = _create_message(to=ADDRESS_B)
     assert not_create_message.is_create is False

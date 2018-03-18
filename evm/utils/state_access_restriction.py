@@ -1,20 +1,9 @@
-from eth_utils import (
-    keccak,
-    to_set,
-)
+from eth_utils import (keccak, to_set)
 
-from evm.constants import (
-    BALANCE_TRIE_PREFIX,
-    CODE_TRIE_PREFIX,
-    STORAGE_TRIE_PREFIX,
-)
+from evm.constants import (BALANCE_TRIE_PREFIX, CODE_TRIE_PREFIX, STORAGE_TRIE_PREFIX)
 
-from evm.utils.padding import (
-    pad32,
-)
-from evm.utils.numeric import (
-    int_to_big_endian,
-)
+from evm.utils.padding import (pad32,)
+from evm.utils.numeric import (int_to_big_endian,)
 
 from typing import Dict, Any  # noqa
 
@@ -24,6 +13,7 @@ def is_accessible(key, access_prefix_list):
     for prefix in access_prefix_list:
         if key.startswith(prefix):
             return True
+
     return False
 
 
@@ -35,21 +25,19 @@ def remove_redundant_prefixes(prefix_list):
     strings that are covered by both `eth` and `ethereum`.
     """
     root = {}  # type: Dict[str, Any]
-
     if b'' in prefix_list:
         yield b''
+
     else:
         sorted_prefixes = sorted(prefix_list, key=lambda prefix: len(prefix))
         for prefix in sorted_prefixes:
             cur = root
-
             for i in range(len(prefix)):
                 if None in cur:
                     break
 
                 if prefix[i] not in cur:
                     cur[prefix[i]] = {}
-
                 if i == len(prefix) - 1:
                     cur[prefix[i]][None] = {}
                     yield prefix
@@ -67,6 +55,7 @@ def to_prefix_list_form(access_list):
         address, *storage_prefixes = obj
         yield get_balance_key(address)
         yield get_code_key(address)
+
         for prefix in remove_redundant_prefixes(storage_prefixes):
             yield keccak(address) + STORAGE_TRIE_PREFIX + prefix
 

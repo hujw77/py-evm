@@ -1,6 +1,4 @@
-from .base import (
-    BaseVM,
-)
+from .base import (BaseVM,)
 
 
 class ShardVM(BaseVM):

@@ -2,15 +2,12 @@ import pytest
 
 from eth_keys import keys
 
-from cytoolz import (
-    merge,
-)
+from cytoolz import (merge,)
 
 from evm.exceptions import ValidationError
 
 from evm.auxiliary.user_account_contract.transaction import (
-    UserAccountTransaction,
-    UnsignedUserAccountTransaction
+    UserAccountTransaction, UnsignedUserAccountTransaction
 )
 
 VALID_PARAMS = {
@@ -25,9 +22,8 @@ VALID_PARAMS = {
     "min_block": 6,
     "max_block": 7,
     "gas_price": 8,
-    "msg_data": b"\xcc" * 123,
+    "msg_data": b"\xcc" * 123
 }
-
 INVALID_PARAMS = {
     "chain_id": b"\x01",
     "shard_id": b"\x02",
@@ -40,7 +36,7 @@ INVALID_PARAMS = {
     "min_block": b"\x06",
     "max_block": b"\x07",
     "gas_price": b"\x08",
-    "msg_data": 123,
+    "msg_data": 123
 }
 
 
@@ -72,8 +68,7 @@ def test_validation(key, value):
     with pytest.raises(ValidationError):
         setattr(tx, key, value)
         tx.validate()
-
-    tx = UserAccountTransaction(**merge(VALID_PARAMS, {"v": 27, "r": 1, "s": 1}))
+    tx = UserAccountTransaction(** merge(VALID_PARAMS, {"v": 27, "r": 1, "s": 1}))
     with pytest.raises(ValidationError):
         setattr(tx, key, value)
         tx.validate()

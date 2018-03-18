@@ -1,10 +1,6 @@
-from cytoolz import (
-    assoc,
-)
+from cytoolz import (assoc,)
 
-from eth_utils import (
-    reversed_return,
-)
+from eth_utils import (reversed_return,)
 
 from evm.chains.base import Chain
 
@@ -15,12 +11,11 @@ from evm.vm.forks import (
     SpuriousDragonVM as BaseSpuriousDragonVM,
 )
 
-from evm.utils.chain import (
-    generate_vms_by_range,
-)
+from evm.utils.chain import (generate_vms_by_range,)
 
 
 class MaintainGasLimitMixin(object):
+
     @classmethod
     def create_header_from_parent(cls, parent_header, **header_params):
         """
@@ -28,8 +23,7 @@ class MaintainGasLimitMixin(object):
         previous block.
         """
         return super(MaintainGasLimitMixin, cls).create_header_from_parent(
-            parent_header,
-            **assoc(header_params, 'gas_limit', parent_header.gas_limit)
+            parent_header, ** assoc(header_params, 'gas_limit', parent_header.gas_limit)
         )
 
 
@@ -50,22 +44,23 @@ class SpuriousDragonTesterVM(MaintainGasLimitMixin, BaseSpuriousDragonVM):
 
 
 INVALID_FORK_ACTIVATION_MSG = (
-    "The {0}-fork activation block may not be null if the {1}-fork block "
-    "is non null"
+    "The {0}-fork activation block may not be null if the {1}-fork block " "is non null"
 )
 
 
 @reversed_return
-def _generate_vm_configuration(homestead_start_block=None,
-                               dao_start_block=None,
-                               tangerine_whistle_start_block=None,
-                               spurious_dragon_block=None):
+def _generate_vm_configuration(
+    homestead_start_block=None,
+    dao_start_block=None,
+    tangerine_whistle_start_block=None,
+    spurious_dragon_block=None,
+):
     # If no explicit configuration has been passed, configure the vm to start
     # with the latest fork rules at block 0
     no_declared_blocks = (
-        spurious_dragon_block is None and
-        tangerine_whistle_start_block is None and
-        homestead_start_block is None
+        spurious_dragon_block is None
+        and tangerine_whistle_start_block is None
+        and homestead_start_block is None
     )
     if no_declared_blocks:
         yield (0, SpuriousDragonTesterVM)
@@ -74,8 +69,7 @@ def _generate_vm_configuration(homestead_start_block=None,
         yield (spurious_dragon_block, SpuriousDragonTesterVM)
 
         remaining_blocks_not_declared = (
-            homestead_start_block is None and
-            tangerine_whistle_start_block is None
+            homestead_start_block is None and tangerine_whistle_start_block is None
         )
         if spurious_dragon_block > 0 and remaining_blocks_not_declared:
             yield (0, TangerineWhistleTesterVM)
@@ -87,9 +81,7 @@ def _generate_vm_configuration(homestead_start_block=None,
         # been configured for a specific block, configure homestead_start_block to start at
         # block 0.
         if tangerine_whistle_start_block > 0 and homestead_start_block is None:
-            HomesteadTesterVM = BaseHomesteadTesterVM.configure(
-                dao_fork_block_number=0,
-            )
+            HomesteadTesterVM = BaseHomesteadTesterVM.configure(dao_fork_block_number=0)
             yield (0, HomesteadTesterVM)
 
     if homestead_start_block is not None:
@@ -100,13 +92,13 @@ def _generate_vm_configuration(homestead_start_block=None,
         elif dao_start_block is not None:
             # Otherwise, if a specific dao_start_block fork block has been set, use it.
             HomesteadTesterVM = BaseHomesteadTesterVM.configure(
-                dao_fork_block_number=dao_start_block,
+                dao_fork_block_number=dao_start_block
             )
         else:
             # Otherwise, default to the homestead_start_block block as the
             # start of the dao_start_block fork.
             HomesteadTesterVM = BaseHomesteadTesterVM.configure(
-                dao_fork_block_number=homestead_start_block,
+                dao_fork_block_number=homestead_start_block
             )
         yield (homestead_start_block, HomesteadTesterVM)
 
@@ -117,23 +109,25 @@ def _generate_vm_configuration(homestead_start_block=None,
 
 
 BaseMainnetTesterChain = Chain.configure(
-    'MainnetTesterChain',
-    vm_configuration=_generate_vm_configuration()
+    'MainnetTesterChain', vm_configuration=_generate_vm_configuration()
 )
 
 
 class MainnetTesterChain(BaseMainnetTesterChain):
+
     def validate_seal(self, block):
         """
         We don't validate the proof of work seal on the tester chain.
         """
         pass
 
-    def configure_forks(self,
-                        homestead_start_block=None,
-                        dao_start_block=None,
-                        tangerine_whistle_start_block=None,
-                        spurious_dragon_block=None):
+    def configure_forks(
+        self,
+        homestead_start_block=None,
+        dao_start_block=None,
+        tangerine_whistle_start_block=None,
+        spurious_dragon_block=None,
+    ):
         """
         TODO: add support for state_cleanup
         """

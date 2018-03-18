@@ -1,9 +1,4 @@
-from evm.constants import (
-    GAS_TX,
-    GAS_TXCREATE,
-    GAS_TXDATAZERO,
-    GAS_TXDATANONZERO,
-)
+from evm.constants import (GAS_TX, GAS_TXCREATE, GAS_TXDATAZERO, GAS_TXDATANONZERO)
 from evm.validation import (
     validate_uint256,
     validate_is_bytes,
@@ -12,9 +7,7 @@ from evm.validation import (
     validate_word,
 )
 
-from evm.rlp.transactions import (
-    BaseShardingTransaction,
-)
+from evm.rlp.transactions import (BaseShardingTransaction,)
 
 
 class ShardingTransaction(BaseShardingTransaction):
@@ -22,17 +15,14 @@ class ShardingTransaction(BaseShardingTransaction):
     def validate(self):
         validate_uint256(self.chain_id, title="Transaction.chain_id")
         validate_uint256(self.shard_id, title="Transaction.shard_id")
-
         validate_canonical_address(self.to, title="Transaction.to")
         validate_is_bytes(self.data, title="Transaction.data")
-
         validate_uint256(self.gas, title="Transaction.gas")
-
-        validate_transaction_access_list(self.access_list, title="Transaction.access_list")
-
+        validate_transaction_access_list(
+            self.access_list, title="Transaction.access_list"
+        )
         validate_is_bytes(self.code, title="Transaction.code")
         validate_word(self.salt, title="Transaction.salt")
-
         super(ShardingTransaction, self).validate()
 
     def get_intrinsic_gas(self):
@@ -48,7 +38,9 @@ def _get_sharding_intrinsic_gas(transaction_data, transaction_code):
         create_cost = 0
     return (
         GAS_TX +
-        num_zero_bytes * GAS_TXDATAZERO +
-        num_non_zero_bytes * GAS_TXDATANONZERO +
+        num_zero_bytes *
+        GAS_TXDATAZERO +
+        num_non_zero_bytes *
+        GAS_TXDATANONZERO +
         create_cost
     )

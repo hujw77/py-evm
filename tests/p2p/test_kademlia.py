@@ -5,9 +5,7 @@ import pytest
 
 from eth_keys import keys
 
-from eth_utils import (
-    int_to_big_endian,
-)
+from eth_utils import (int_to_big_endian,)
 
 from p2p.cancel_token import CancelToken
 from p2p import kademlia
@@ -37,15 +35,13 @@ async def test_protocol_bootstrap(cancel_token):
 
     # Pretend we bonded successfully with our bootstrap nodes.
     proto.bond = bond
-
     await proto.bootstrap([node1, node2], cancel_token)
-
     assert len(proto.wire.messages) == 2
     # We don't care in which order the bootstrap nodes are contacted, nor which node_id was used
     # in the find_node request, so we just assert that we sent find_node msgs to both nodes.
-    assert sorted([(node, cmd) for (node, cmd, _) in proto.wire.messages]) == sorted([
-        (node1, 'find_node'),
-        (node2, 'find_node')])
+    assert sorted([(node, cmd) for (node, cmd, _) in proto.wire.messages]) == sorted(
+        [(node1, 'find_node'), (node2, 'find_node')]
+    )
 
 
 @pytest.mark.asyncio
@@ -53,25 +49,19 @@ async def test_protocol_bootstrap(cancel_token):
 async def test_wait_ping(echo, cancel_token):
     proto = get_wired_protocol()
     node = random_node()
-
     # Schedule a call to proto.recv_ping() simulating a ping from the node we expect.
     recv_ping_coroutine = asyncio.coroutine(lambda: proto.recv_ping(node, echo))
     asyncio.ensure_future(recv_ping_coroutine())
-
     got_ping = await proto.wait_ping(node, cancel_token)
-
     assert got_ping
     # Ensure wait_ping() cleaned up after itself.
     assert node not in proto.ping_callbacks
-
     # If we waited for a ping from a different node, wait_ping() would timeout and thus return
     # false.
     recv_ping_coroutine = asyncio.coroutine(lambda: proto.recv_ping(node, echo))
     asyncio.ensure_future(recv_ping_coroutine())
-
     node2 = random_node()
     got_ping = await proto.wait_ping(node2, cancel_token)
-
     assert not got_ping
     assert node2 not in proto.ping_callbacks
 
@@ -80,27 +70,21 @@ async def test_wait_ping(echo, cancel_token):
 async def test_wait_pong(cancel_token):
     proto = get_wired_protocol()
     node = random_node()
-
     token = b'token'
     # Schedule a call to proto.recv_pong() simulating a pong from the node we expect.
     recv_pong_coroutine = asyncio.coroutine(lambda: proto.recv_pong(node, token))
     asyncio.ensure_future(recv_pong_coroutine())
-
     got_pong = await proto.wait_pong(node, token, cancel_token)
-
     assert got_pong
     # Ensure wait_pong() cleaned up after itself.
     pingid = proto._mkpingid(token, node)
     assert pingid not in proto.pong_callbacks
-
     # If the remote node echoed something different than what we expected, wait_pong() would
     # timeout.
     wrong_token = b"foo"
     recv_pong_coroutine = asyncio.coroutine(lambda: proto.recv_pong(node, wrong_token))
     asyncio.ensure_future(recv_pong_coroutine())
-
     got_pong = await proto.wait_pong(node, token, cancel_token)
-
     assert not got_pong
     assert pingid not in proto.pong_callbacks
 
@@ -109,22 +93,19 @@ async def test_wait_pong(cancel_token):
 async def test_wait_neighbours(cancel_token):
     proto = get_wired_protocol()
     node = random_node()
-
     # Schedule a call to proto.recv_neighbours() simulating a neighbours response from the node we
     # expect.
     neighbours = [random_node(), random_node(), random_node()]
-    recv_neighbours_coroutine = asyncio.coroutine(lambda: proto.recv_neighbours(node, neighbours))
+    recv_neighbours_coroutine = asyncio.coroutine(
+        lambda: proto.recv_neighbours(node, neighbours)
+    )
     asyncio.ensure_future(recv_neighbours_coroutine())
-
     received_neighbours = await proto.wait_neighbours(node, cancel_token)
-
     assert neighbours == received_neighbours
     # Ensure wait_neighbours() cleaned up after itself.
     assert node not in proto.neighbours_callbacks
-
     # If wait_neighbours() times out, we get an empty list of neighbours.
     received_neighbours = await proto.wait_neighbours(node, cancel_token)
-
     assert received_neighbours == []
     assert node not in proto.neighbours_callbacks
 
@@ -133,22 +114,18 @@ async def test_wait_neighbours(cancel_token):
 async def test_bond(cancel_token):
     proto = get_wired_protocol()
     node = random_node()
-
     token = b'token'
     # Do not send pings, instead simply return the pingid we'd expect back together with the pong.
     proto.ping = lambda remote: token
-
     # Pretend we get a pong from the node we are bonding with.
-    proto.wait_pong = asyncio.coroutine(lambda n, t, cancel_token: t == token and n == node)
-
+    proto.wait_pong = asyncio.coroutine(
+        lambda n, t, cancel_token: t == token and n == node
+    )
     bonded = await proto.bond(node, cancel_token)
-
     assert bonded
-
     # If we try to bond with any other nodes we'll timeout and bond() will return False.
     node2 = random_node()
     bonded = await proto.bond(node2, cancel_token)
-
     assert not bonded
 
 
@@ -166,9 +143,7 @@ def test_node_from_uri():
 def test_update_routing_table():
     proto = get_wired_protocol()
     node = random_node()
-
     assert proto.update_routing_table(node) is None
-
     assert node in proto.routing
 
 
@@ -176,7 +151,6 @@ def test_update_routing_table():
 async def test_update_routing_table_triggers_bond_if_eviction_candidate():
     proto = get_wired_protocol()
     old_node, new_node = random_node(), random_node()
-
     bond_called = False
 
     def bond(node, cancel_token):
@@ -188,9 +162,7 @@ async def test_update_routing_table_triggers_bond_if_eviction_candidate():
     # Pretend our routing table failed to add the new node by returning the least recently seen
     # node for an eviction check.
     proto.routing.add_node = lambda n: old_node
-
     proto.update_routing_table(new_node)
-
     assert new_node not in proto.routing
     # The update_routing_table() call above will have scheduled a future call to proto.bond() so
     # we need to yield here to give it a chance to run.
@@ -225,9 +197,7 @@ def test_routingtable_remove_node():
     node1 = random_node()
     assert table.add_node(node1) is None
     assert node1 in table
-
     table.remove_node(node1)
-
     assert node1 not in table
 
 
@@ -242,12 +212,12 @@ def test_routingtable_neighbours():
     for i in range(1000):
         assert table.add_node(random_node()) is None
         assert i == len(table) - 1
-
     for i in range(100):
         node = random_node()
         nearest_bucket = table.buckets_by_distance_to(node.id)[0]
         if not nearest_bucket.nodes:
             continue
+
         # Change nodeid to something that is in this bucket's range.
         node_a = nearest_bucket.nodes[0]
         node_b = random_node(node_a.id + 1)
@@ -258,11 +228,9 @@ def test_routingtable_get_random_nodes():
     table = kademlia.RoutingTable(random_node())
     for i in range(100):
         assert table.add_node(random_node()) is None
-
     nodes = list(table.get_random_nodes(50))
     assert len(nodes) == 50
     assert len(set(nodes)) == 50
-
     # If we ask for more nodes than what the routing table contains, we'll get only what the
     # routing table contains, without duplicates.
     nodes = list(table.get_random_nodes(200))
@@ -275,16 +243,13 @@ def test_kbucket_add():
     node = random_node()
     assert bucket.add(node) is None
     assert bucket.nodes == [node]
-
     node2 = random_node()
     assert bucket.add(node2) is None
     assert bucket.nodes == [node, node2]
     assert bucket.head == node
-
     assert bucket.add(node) is None
     assert bucket.nodes == [node2, node]
     assert bucket.head == node2
-
     bucket.k = 2
     node3 = random_node()
     assert bucket.add(node3) == node2
@@ -324,21 +289,10 @@ def test_bucket_ordering():
 
 @pytest.mark.parametrize(
     "bucket_list, node_id",
-    (
-        (list([]), 5),
-        # test for node.id < bucket.end
-        (list([kademlia.KBucket(0, 4)]), 5),
-        # test for node.id > bucket.start
-        (list([kademlia.KBucket(6, 10)]), 5),
-        # test multiple buckets that don't contain node.id
-        (list(
-            [
-                kademlia.KBucket(1, 5),
-                kademlia.KBucket(6, 49),
-                kademlia.KBucket(50, 100),
-            ]
-        ), 0),
-    )
+    ((list([]), 5), (list([kademlia.KBucket(0, 4)]), 5), (list([kademlia.KBucket(6, 10)]), 5), (list([kademlia.KBucket(1, 5), kademlia.KBucket(6, 49), kademlia.KBucket(50, 100)]), 0)),
+    # test for node.id < bucket.end
+    # test for node.id > bucket.start
+    # test multiple buckets that don't contain node.id
 )
 def test_binary_get_bucket_for_node_error(bucket_list, node_id):
     node = random_node(nodeid=node_id)
@@ -351,33 +305,37 @@ def test_binary_get_bucket_for_node_error(bucket_list, node_id):
     (
         (list([kademlia.KBucket(0, 100)]), 5, 0),
         (list([kademlia.KBucket(0, 49), kademlia.KBucket(50, 100)]), 5, 0),
-        (list(
-            [
-                kademlia.KBucket(0, 1),
-                kademlia.KBucket(2, 5),
-                kademlia.KBucket(6, 49),
-                kademlia.KBucket(50, 100)
-            ]
-        ), 5, 1),
-    )
+        (
+            list(
+                [
+                    kademlia.KBucket(0, 1),
+                    kademlia.KBucket(2, 5),
+                    kademlia.KBucket(6, 49),
+                    kademlia.KBucket(50, 100),
+                ]
+            ),
+            5,
+            1,
+        ),
+    ),
 )
 def test_binary_get_bucket_for_node(bucket_list, node_id, correct_position):
     node = random_node(nodeid=node_id)
-    assert kademlia.binary_get_bucket_for_node(bucket_list, node) == bucket_list[correct_position]
+    assert kademlia.binary_get_bucket_for_node(bucket_list, node) == bucket_list[
+        correct_position
+    ]
 
 
 def test_compute_shared_prefix_bits():
     # When we have less than 2 nodes, the depth is k_id_size.
     nodes = [random_node()]
     assert kademlia._compute_shared_prefix_bits(nodes) == kademlia.k_id_size
-
     # Otherwise the depth is the number of leading bits (in the left-padded binary representation)
     # shared by all node IDs.
     nodes.append(random_node())
     nodes[0].id = int('0b1', 2)
     nodes[1].id = int('0b0', 2)
     assert kademlia._compute_shared_prefix_bits(nodes) == kademlia.k_id_size - 1
-
     nodes[0].id = int('0b010', 2)
     nodes[1].id = int('0b110', 2)
     assert kademlia._compute_shared_prefix_bits(nodes) == kademlia.k_id_size - 3
@@ -402,7 +360,6 @@ def random_node(nodeid=None):
 
 
 class WireMock():
-
     messages = []  # type: ignore
     cancel_token = CancelToken("WireMock")
 
@@ -410,7 +367,7 @@ class WireMock():
         self.sender = sender
 
     def send_ping(self, node):
-        echo = hex(random.randint(0, 2**256))[-32:]
+        echo = hex(random.randint(0, 2 ** 256))[-32:]
         self.messages.append((node, 'ping', echo))
         return echo
 

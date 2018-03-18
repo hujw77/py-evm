@@ -10,7 +10,6 @@ from .headers import (
     configure_frontier_header,
 )
 
-
 FrontierVM = VM.configure(
     __name__='FrontierVM',
     # classes

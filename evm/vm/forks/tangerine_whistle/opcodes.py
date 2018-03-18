@@ -9,15 +9,9 @@ from evm import mnemonics
 
 from evm.opcode import as_opcode
 
-from evm.logic import (
-    call,
-    context,
-    storage,
-    system,
-)
+from evm.logic import (call, context, storage, system)
 
 from evm.vm.forks.homestead.opcodes import HOMESTEAD_OPCODES
-
 
 UPDATED_OPCODES = {
     opcode_values.EXTCODESIZE: as_opcode(
@@ -46,9 +40,7 @@ UPDATED_OPCODES = {
         gas_cost=constants.GAS_SELFDESTRUCT_EIP150,
     ),
     opcode_values.CREATE: system.CreateEIP150.configure(
-        __name__='opcode:CREATE',
-        mnemonic=mnemonics.CREATE,
-        gas_cost=GAS_CREATE,
+        __name__='opcode:CREATE', mnemonic=mnemonics.CREATE, gas_cost=GAS_CREATE
     )(),
     opcode_values.CALL: call.CallEIP150.configure(
         __name__='opcode:CALL',
@@ -66,9 +58,4 @@ UPDATED_OPCODES = {
         gas_cost=constants.GAS_CALL_EIP150,
     )(),
 }
-
-
-TANGERINE_WHISTLE_OPCODES = merge(
-    copy.deepcopy(HOMESTEAD_OPCODES),
-    UPDATED_OPCODES,
-)
+TANGERINE_WHISTLE_OPCODES = merge(copy.deepcopy(HOMESTEAD_OPCODES), UPDATED_OPCODES)

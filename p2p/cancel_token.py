@@ -30,17 +30,20 @@ class CancelToken:
     def triggered_token(self) -> 'CancelToken':
         if self._triggered.is_set():
             return self
+
         for token in self._chain:
             if token.triggered:
                 # Use token.triggered_token here to make the lookup recursive as self._chain may
                 # contain other chains.
                 return token.triggered_token
+
         return None
 
     @property
     def triggered(self) -> bool:
         if self._triggered.is_set():
             return True
+
         return any(token.triggered for token in self._chain)
 
     async def wait(self) -> None:
@@ -70,9 +73,9 @@ async def _wait_for_first(futures):
         return
 
 
-async def wait_with_token(*futures: Awaitable,
-                          token: CancelToken,
-                          timeout: float = None) -> Any:
+async def wait_with_token(
+    *futures: Awaitable, token: CancelToken, timeout: float = None
+) -> Any:
     """Wait for the first future to complete, unless we timeout or the cancel token is triggered.
 
     Returns the result of the first future to complete.
@@ -82,18 +85,20 @@ async def wait_with_token(*futures: Awaitable,
     All pending futures are cancelled before returning.
     """
     done, pending = await asyncio.wait(
-        futures + (token.wait(),),
-        timeout=timeout,
-        return_when=asyncio.FIRST_COMPLETED)
+        futures + (token.wait(),), timeout=timeout, return_when=asyncio.FIRST_COMPLETED
+    )
     for task in pending:
         task.cancel()
     if not done:
         raise TimeoutError()
+
     if token.triggered_token is not None:
         # We've been asked to cancel so we don't care about our future, but we must
         # consume its exception or else asyncio will emit warnings.
         for task in done:
             task.exception()
         raise OperationCancelled(
-            "Cancellation requested by {} token".format(token.triggered_token))
+            "Cancellation requested by {} token".format(token.triggered_token)
+        )
+
     return done.pop().result()

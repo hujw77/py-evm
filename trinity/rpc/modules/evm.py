@@ -1,6 +1,4 @@
-from eth_utils import (
-    encode_hex,
-)
+from eth_utils import (encode_hex,)
 
 from evm.tools.fixture_tests import (
     apply_fixture_block_to_chain,
@@ -9,16 +7,13 @@ from evm.tools.fixture_tests import (
     normalize_blockchain_fixtures,
 )
 
-from trinity.rpc.format import (
-    format_params,
-)
+from trinity.rpc.format import (format_params,)
 # Tell mypy to ignore this import as a workaround for https://github.com/python/mypy/issues/4049
-from trinity.rpc.modules import (  # type: ignore
-    RPCModule,
-)
+from trinity.rpc.modules import (RPCModule,)  # type: ignore
 
 
 class EVM(RPCModule):
+
     @format_params(normalize_blockchain_fixtures)
     def resetToGenesisFixture(self, chain_info):
         '''

@@ -11,14 +11,20 @@ class LocalGethPeerPool(HardCodedNodesPeerPool):
     min_peers = 1
 
     def get_nodes_to_connect(self):
-        nodekey = keys.PrivateKey(decode_hex(
-            "45a915e4d060149eb4365960e6a7a45f334393093061116b197e3240065ff2d8"))
+        nodekey = keys.PrivateKey(
+            decode_hex(
+                "45a915e4d060149eb4365960e6a7a45f334393093061116b197e3240065ff2d8"
+            )
+        )
         remoteid = nodekey.public_key.to_hex()
-        yield kademlia.Node(keys.PublicKey(decode_hex(remoteid)),
-                            kademlia.Address('127.0.0.1', 30303, 30303))
+        yield kademlia.Node(
+            keys.PublicKey(decode_hex(remoteid)),
+            kademlia.Address('127.0.0.1', 30303, 30303),
+        )
 
 
 class FakeAsyncChainDB(AsyncChainDB):
+
     async def coro_get_score(self, *args, **kwargs):
         return self.get_score(*args, **kwargs)
 

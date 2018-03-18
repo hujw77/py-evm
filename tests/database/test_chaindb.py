@@ -1,65 +1,28 @@
 import pytest
 
-from hypothesis import (
-    given,
-    strategies as st,
-)
+from hypothesis import (given, strategies as st)
 
 import rlp
-from trie import (
-    BinaryTrie,
-    HexaryTrie,
-)
+from trie import (BinaryTrie, HexaryTrie)
 
-from eth_utils import (
-    keccak,
-)
-from evm.utils.numeric import (
-    big_endian_to_int,
-)
-from evm.utils.state_access_restriction import (
-    get_balance_key,
-    get_storage_key,
-)
-from evm.constants import (
-    BLANK_ROOT_HASH,
-    EMPTY_SHA3,
-    ZERO_HASH32,
-)
+from eth_utils import (keccak,)
+from evm.utils.numeric import (big_endian_to_int,)
+from evm.utils.state_access_restriction import (get_balance_key, get_storage_key)
+from evm.constants import (BLANK_ROOT_HASH, EMPTY_SHA3, ZERO_HASH32)
 
-from evm.db import (
-    get_db_backend,
-)
-from evm.db.chain import (
-    ChainDB,
-)
-from evm.db.state import (
-    MainAccountStateDB,
-    ShardingAccountStateDB,
-)
-from evm.exceptions import (
-    BlockNotFound,
-    ParentNotFound,
-)
-from evm.rlp.headers import (
-    BlockHeader,
-    CollationHeader,
-)
-from evm.tools.fixture_tests import (
-    assert_rlp_equal,
-)
+from evm.db import (get_db_backend,)
+from evm.db.chain import (ChainDB,)
+from evm.db.state import (MainAccountStateDB, ShardingAccountStateDB)
+from evm.exceptions import (BlockNotFound, ParentNotFound)
+from evm.rlp.headers import (BlockHeader, CollationHeader)
+from evm.tools.fixture_tests import (assert_rlp_equal,)
 from evm.utils.db import (
     get_empty_root_hash,
     make_block_hash_to_score_lookup_key,
     make_block_number_to_hash_lookup_key,
 )
-from evm.vm.forks.frontier.blocks import (
-    FrontierBlock,
-)
-from evm.vm.forks.homestead.blocks import (
-    HomesteadBlock,
-)
-
+from evm.vm.forks.frontier.blocks import (FrontierBlock,)
+from evm.vm.forks.homestead.blocks import (HomesteadBlock,)
 
 A_ADDRESS = b"\xaa" * 20
 B_ADDRESS = b"\xbb" * 20
@@ -79,9 +42,7 @@ def chaindb(request):
     else:
         trie_class = BinaryTrie
     return ChainDB(
-        get_db_backend(),
-        account_state_class=request.param,
-        trie_class=trie_class,
+        get_db_backend(), account_state_class=request.param, trie_class=trie_class
     )
 
 
@@ -100,7 +61,6 @@ def populated_shard_chaindb_and_root_hash(shard_chaindb):
         root_hash = BLANK_ROOT_HASH
     else:
         root_hash = EMPTY_SHA3
-
     state_db = shard_chaindb.get_state_db(root_hash, read_only=False)
     state_db.set_balance(A_ADDRESS, 1)
     state_db.set_code(B_ADDRESS, b"code")
@@ -135,9 +95,7 @@ def test_persist_header(chaindb, header):
         chaindb.get_block_header_by_hash(header.hash)
     number_to_hash_key = make_block_hash_to_score_lookup_key(header.hash)
     assert not chaindb.exists(number_to_hash_key)
-
     chaindb.persist_header(header)
-
     assert chaindb.get_block_header_by_hash(header.hash) == header
     assert chaindb.exists(number_to_hash_key)
 
@@ -160,17 +118,20 @@ def test_persist_block(chaindb, block):
 def test_get_score(chaindb):
     genesis = BlockHeader(difficulty=1, block_number=0, gas_limit=0)
     chaindb.persist_header(genesis)
-
     genesis_score_key = make_block_hash_to_score_lookup_key(genesis.hash)
-    genesis_score = rlp.decode(chaindb.db.get(genesis_score_key), sedes=rlp.sedes.big_endian_int)
+    genesis_score = rlp.decode(
+        chaindb.db.get(genesis_score_key), sedes=rlp.sedes.big_endian_int
+    )
     assert genesis_score == 1
     assert chaindb.get_score(genesis.hash) == 1
-
-    block1 = BlockHeader(difficulty=10, block_number=1, gas_limit=0, parent_hash=genesis.hash)
+    block1 = BlockHeader(
+        difficulty=10, block_number=1, gas_limit=0, parent_hash=genesis.hash
+    )
     chaindb.persist_header(block1)
-
     block1_score_key = make_block_hash_to_score_lookup_key(block1.hash)
-    block1_score = rlp.decode(chaindb.db.get(block1_score_key), sedes=rlp.sedes.big_endian_int)
+    block1_score = rlp.decode(
+        chaindb.db.get(block1_score_key), sedes=rlp.sedes.big_endian_int
+    )
     assert block1_score == 11
     assert chaindb.get_score(block1.hash) == 11
 
@@ -198,9 +159,8 @@ def test_get_witness_nodes(populated_shard_chaindb_and_root_hash):
         period_start_prevhash=ZERO_HASH32,
         parent_hash=ZERO_HASH32,
         number=0,
-        state_root=root_hash
+        state_root=root_hash,
     )
-
     prefixes = [
         get_balance_key(A_ADDRESS),
         get_balance_key(B_ADDRESS),
@@ -210,7 +170,6 @@ def test_get_witness_nodes(populated_shard_chaindb_and_root_hash):
         get_storage_key(B_ADDRESS, big_endian_to_int(b"key")),
         get_storage_key(B_ADDRESS, big_endian_to_int(b"")),
     ]
-
     witness_nodes = chaindb.get_witness_nodes(header, prefixes)
     assert len(witness_nodes) == len(set(witness_nodes))  # no duplicates
     assert sorted(witness_nodes) == sorted(witness_nodes)  # sorted

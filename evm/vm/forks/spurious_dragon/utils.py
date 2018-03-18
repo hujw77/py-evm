@@ -1,10 +1,7 @@
 from eth_utils import to_set
 
 from evm import constants
-from evm.utils.address import (
-    force_bytes_to_address,
-)
-
+from evm.utils.address import (force_bytes_to_address,)
 
 THREE = force_bytes_to_address(b'\x03')
 
@@ -28,6 +25,7 @@ def collect_touched_accounts(computation):
             if beneficiary == THREE:
                 yield beneficiary
             continue
+
         else:
             yield beneficiary
 
@@ -37,6 +35,7 @@ def collect_touched_accounts(computation):
             # https://github.com/ethereum/EIPs/issues/716
             if computation.msg.to == THREE:
                 yield computation.msg.to
+
         else:
             yield computation.msg.to
 

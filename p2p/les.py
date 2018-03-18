@@ -3,24 +3,16 @@ from typing import Any, cast, Dict, Generator, List, Tuple, Union
 import rlp
 from rlp import sedes
 
-from eth_utils import (
-    encode_hex,
-    to_dict,
-)
+from eth_utils import (encode_hex, to_dict)
 
 from evm.rlp.headers import BlockHeader
 from evm.rlp.receipts import Receipt
 
-from p2p.protocol import (
-    Command,
-    Protocol,
-    _DecodedMsgType,
-)
+from p2p.protocol import (Command, Protocol, _DecodedMsgType)
 from p2p.rlp import BlockBody
 from p2p.sedes import HashOrNumber
 
 from .constants import LES_ANNOUNCE_SIMPLE
-
 
 # Max number of items we can ask for in LES requests. These are the values used in geth and if we
 # ask for more than this the peers will disconnect from us.
@@ -33,6 +25,7 @@ MAX_HEADER_PROOFS_FETCH = 64
 
 
 class HeadInfo:
+
     def __init__(self, block_number, block_hash, total_difficulty, reorg_depth):
         self.block_number = block_number
         self.block_hash = block_hash
@@ -41,8 +34,11 @@ class HeadInfo:
 
     def __str__(self):
         return "HeadInfo{{block:{}, hash:{}, td:{}, reorg_depth:{}}}".format(
-            self.block_number, encode_hex(self.block_hash), self.total_difficulty,
-            self.reorg_depth)
+            self.block_number,
+            encode_hex(self.block_hash),
+            self.total_difficulty,
+            self.reorg_depth,
+        )
 
 
 class Status(Command):
@@ -66,13 +62,18 @@ class Status(Command):
         'txRelay': None,
         'flowControl/BL': sedes.big_endian_int,
         'flowControl/MRC': sedes.CountableList(
-            sedes.List([sedes.big_endian_int, sedes.big_endian_int, sedes.big_endian_int])),
+            sedes.List(
+                [sedes.big_endian_int, sedes.big_endian_int, sedes.big_endian_int]
+            )
+        ),
         'flowControl/MRR': sedes.big_endian_int,
     }
 
     @to_dict
     def decode_payload(self, rlp_data: bytes) -> Generator[Tuple[str, Any], None, None]:
-        data = cast(List[Tuple[bytes, bytes]], super(Status, self).decode_payload(rlp_data))
+        data = cast(
+            List[Tuple[bytes, bytes]], super(Status, self).decode_payload(rlp_data)
+        )
         # The LES/Status msg contains an arbitrary list of (key, value) pairs, where values can
         # have different types and unknown keys should be ignored for forward compatibility
         # reasons, so here we need an extra pass to deserialize each of the key/value pairs we
@@ -84,17 +85,18 @@ class Status(Command):
             str_key = key.decode('ascii')
             if str_key not in self.items_sedes:
                 continue
+
             item_sedes = self.items_sedes[str_key]
             if item_sedes is not None:
                 yield str_key, item_sedes.deserialize(value)
+
             else:
                 yield str_key, value
 
     def encode_payload(self, data):
         response = [
             (key, self.items_sedes[key].serialize(value))
-            for key, value
-            in sorted(data.items())
+            for key, value in sorted(data.items())
         ]
         return super(Status, self).encode_payload(response)
 
@@ -117,9 +119,9 @@ class Announce(Command):
         ('reorg_depth', sedes.big_endian_int),
         ('params', sedes.CountableList(sedes.List([sedes.binary, sedes.raw]))),
     ]
+
     # TODO: The params CountableList above may contain any of the values from the Status msg.
     # Need to extend this command to process that too.
-
     def as_head_info(self, decoded: _DecodedMsgType) -> HeadInfo:
         decoded = cast(Dict[str, Any], decoded)
         return HeadInfo(
@@ -141,10 +143,7 @@ class GetBlockHeadersQuery(rlp.Serializable):
 
 class GetBlockHeaders(Command):
     _cmd_id = 2
-    structure = [
-        ('request_id', sedes.big_endian_int),
-        ('query', GetBlockHeadersQuery),
-    ]
+    structure = [('request_id', sedes.big_endian_int), ('query', GetBlockHeadersQuery)]
 
 
 class BlockHeaders(Command):
@@ -229,10 +228,7 @@ class Proofs(Command):
 
 
 class ContractCodeRequest(rlp.Serializable):
-    fields = [
-        ('block_hash', sedes.binary),
-        ('key', sedes.binary),
-    ]
+    fields = [('block_hash', sedes.binary), ('key', sedes.binary)]
 
 
 class GetContractCodes(Command):
@@ -255,7 +251,9 @@ class ContractCodes(Command):
 class LESProtocol(Protocol):
     name = b'les'
     version = 1
-    _commands = [Status, Announce, BlockHeaders, BlockBodies, Receipts, Proofs, ContractCodes]
+    _commands = [
+        Status, Announce, BlockHeaders, BlockBodies, Receipts, Proofs, ContractCodes
+    ]
     cmd_length = 15
 
     def send_handshake(self, head_info):
@@ -275,17 +273,21 @@ class LESProtocol(Protocol):
         if len(block_hashes) > MAX_BODIES_FETCH:
             raise ValueError(
                 "Cannot ask for more than {} blocks in a single request".format(
-                    MAX_BODIES_FETCH))
-        data = {
-            'request_id': request_id,
-            'block_hashes': block_hashes,
-        }
+                    MAX_BODIES_FETCH
+                )
+            )
+
+        data = {'request_id': request_id, 'block_hashes': block_hashes}
         header, body = GetBlockBodies(self).encode(data)
         self.send(header, body)
 
-    def send_get_block_headers(self, block_number_or_hash: Union[int, bytes],
-                               max_headers: int, request_id: int, reverse: bool = True
-                               ) -> None:
+    def send_get_block_headers(
+        self,
+        block_number_or_hash: Union[int, bytes],
+        max_headers: int,
+        request_id: int,
+        reverse: bool = True,
+    ) -> None:
         """Send a GetBlockHeaders msg to the remote.
 
         This requests that the remote send us up to max_headers, starting from
@@ -295,27 +297,35 @@ class LESProtocol(Protocol):
         if max_headers > MAX_HEADERS_FETCH:
             raise ValueError(
                 "Cannot ask for more than {} block headers in a single request".format(
-                    MAX_HEADERS_FETCH))
+                    MAX_HEADERS_FETCH
+                )
+            )
+
         cmd = GetBlockHeaders(self)
         # Number of block headers to skip between each item (i.e. step in python APIs).
         skip = 0
         data = {
             'request_id': request_id,
-            'query': GetBlockHeadersQuery(block_number_or_hash, max_headers, skip, reverse),
+            'query': GetBlockHeadersQuery(
+                block_number_or_hash, max_headers, skip, reverse
+            ),
         }
         header, body = cmd.encode(data)
         self.send(header, body)
 
     def send_get_receipts(self, block_hash: bytes, request_id: int) -> None:
-        data = {
-            'request_id': request_id,
-            'block_hashes': [block_hash],
-        }
+        data = {'request_id': request_id, 'block_hashes': [block_hash]}
         header, body = GetReceipts(self).encode(data)
         self.send(header, body)
 
-    def send_get_proof(self, block_hash: bytes, account_key: bytes, key: bytes, from_level: int,
-                       request_id: int) -> None:
+    def send_get_proof(
+        self,
+        block_hash: bytes,
+        account_key: bytes,
+        key: bytes,
+        from_level: int,
+        request_id: int,
+    ) -> None:
         data = {
             'request_id': request_id,
             'proof_requests': [ProofRequest(block_hash, account_key, key, from_level)],
@@ -323,7 +333,9 @@ class LESProtocol(Protocol):
         header, body = GetProofs(self).encode(data)
         self.send(header, body)
 
-    def send_get_contract_code(self, block_hash: bytes, key: bytes, request_id: int) -> None:
+    def send_get_contract_code(
+        self, block_hash: bytes, key: bytes, request_id: int
+    ) -> None:
         data = {
             'request_id': request_id,
             'code_requests': [ContractCodeRequest(block_hash, key)],
@@ -355,7 +367,9 @@ class ProofsV2(Command):
 
 class LESProtocolV2(LESProtocol):
     version = 2
-    _commands = [StatusV2, Announce, BlockHeaders, BlockBodies, Receipts, ProofsV2, ContractCodes]
+    _commands = [
+        StatusV2, Announce, BlockHeaders, BlockBodies, Receipts, ProofsV2, ContractCodes
+    ]
     cmd_length = 21
 
     def send_handshake(self, head_info):
@@ -372,12 +386,14 @@ class LESProtocolV2(LESProtocol):
         self.logger.debug("Sending LES/Status msg: %s", resp)
         self.send(*cmd.encode(resp))
 
-    def send_get_proof(self,
-                       block_hash: bytes,
-                       account_key: bytes,
-                       key: bytes,
-                       from_level: int,
-                       request_id: int) -> None:
+    def send_get_proof(
+        self,
+        block_hash: bytes,
+        account_key: bytes,
+        key: bytes,
+        from_level: int,
+        request_id: int,
+    ) -> None:
         data = {
             'request_id': request_id,
             'proof_requests': [ProofRequest(block_hash, account_key, key, from_level)],

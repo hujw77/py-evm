@@ -1,32 +1,21 @@
 import os
 
-from cytoolz import (
-    get_in,
-)
+from cytoolz import (get_in,)
 
-from eth_utils import (
-    decode_hex,
-    to_dict,
-)
+from eth_utils import (decode_hex, to_dict)
 
 from eth_keys import keys
 from eth_keys.datatypes import PrivateKey
 
-from evm.chains.ropsten import (
-    ROPSTEN_NETWORK_ID,
-)
+from evm.chains.ropsten import (ROPSTEN_NETWORK_ID,)
 
-from trinity.constants import (
-    ROPSTEN,
-)
-from .xdg import (
-    get_xdg_trinity_root,
-)
+from trinity.constants import (ROPSTEN,)
+from .xdg import (get_xdg_trinity_root,)
 
 from typing import Union
 
 
-#
+# 
 # Filesystem path utils
 #
 def get_default_data_dir(chain_identifier: str) -> str:
@@ -34,15 +23,14 @@ def get_default_data_dir(chain_identifier: str) -> str:
     Returns the base directory path where data for a given chain will be stored.
     """
     return os.environ.get(
-        'TRINITY_DATA_DIR',
-        os.path.join(get_xdg_trinity_root(), chain_identifier),
+        'TRINITY_DATA_DIR', os.path.join(get_xdg_trinity_root(), chain_identifier)
     )
 
 
 DATABASE_DIR_NAME = 'chain'
 
 
-def get_database_dir(chain_identifier: str, data_dir: str=None) -> str:
+def get_database_dir(chain_identifier: str, data_dir: str = None) -> str:
     """
     Returns the directory path where chain data will be stored.
     """
@@ -54,30 +42,26 @@ def get_database_dir(chain_identifier: str, data_dir: str=None) -> str:
 NODEKEY_FILENAME = 'nodekey'
 
 
-def get_nodekey_path(chain_identifier: str, data_dir: str=None) -> str:
+def get_nodekey_path(chain_identifier: str, data_dir: str = None) -> str:
     """
     Returns the path to the private key used for devp2p connections.
     """
     if data_dir is None:
         data_dir = get_default_data_dir(chain_identifier)
-    return os.environ.get(
-        'TRINITY_NODEKEY',
-        os.path.join(data_dir, NODEKEY_FILENAME),
-    )
+    return os.environ.get('TRINITY_NODEKEY', os.path.join(data_dir, NODEKEY_FILENAME))
 
 
 DATABASE_SOCKET_FILENAME = 'db.ipc'
 
 
-def get_database_socket_path(chain_identifier: str, data_dir: str=None) -> str:
+def get_database_socket_path(chain_identifier: str, data_dir: str = None) -> str:
     """
     Returns the path to the private key used for devp2p connections.
     """
     if data_dir is None:
         data_dir = get_default_data_dir(chain_identifier)
     return os.environ.get(
-        'TRINITY_DATABASE_IPC',
-        os.path.join(data_dir, DATABASE_SOCKET_FILENAME),
+        'TRINITY_DATABASE_IPC', os.path.join(data_dir, DATABASE_SOCKET_FILENAME)
     )
 
 
@@ -91,12 +75,11 @@ def get_jsonrpc_socket_path(chain_identifier, data_dir=None):
     if data_dir is None:
         data_dir = get_default_data_dir(chain_identifier)
     return os.environ.get(
-        'TRINITY_JSONRPC_IPC',
-        os.path.join(data_dir, JSONRPC_SOCKET_FILENAME),
+        'TRINITY_JSONRPC_IPC', os.path.join(data_dir, JSONRPC_SOCKET_FILENAME)
     )
 
 
-#
+# 
 # Nodekey loading
 #
 def load_nodekey(nodekey_path: str) -> PrivateKey:
@@ -107,37 +90,34 @@ def load_nodekey(nodekey_path: str) -> PrivateKey:
 
 
 # TODO: move this somewhere more appropriate
-CHAIN_CONFIG_DEFAULTS = {
-    ROPSTEN: {
-        'network_id': ROPSTEN_NETWORK_ID,
-    }
-}
+CHAIN_CONFIG_DEFAULTS = {ROPSTEN: {'network_id': ROPSTEN_NETWORK_ID}}
 
 
 class ChainConfig:
     chain_identifier = None
-
     _data_dir = None
     _nodekey_path = None
     _nodekey = None
     _network_id = None
 
-    def __init__(self,
-                 chain_identifier: str,
-                 data_dir: str=None,
-                 nodekey_path: str=None,
-                 nodekey: PrivateKey=None,
-                 network_id: int=None) -> None:
+    def __init__(
+        self,
+        chain_identifier: str,
+        data_dir: str = None,
+        nodekey_path: str = None,
+        nodekey: PrivateKey = None,
+        network_id: int = None,
+    ) -> None:
         # validation
         if nodekey is not None and nodekey_path is not None:
-            raise ValueError("It is invalid to provide both a `nodekey` and a `nodekey_path`")
+            raise ValueError(
+                "It is invalid to provide both a `nodekey` and a `nodekey_path`"
+            )
 
         # set values
         self.chain_identifier = chain_identifier
-
         if data_dir is not None:
             self.data_dir = data_dir
-
         if nodekey_path is not None:
             self.nodekey_path = nodekey_path
         elif nodekey is not None:
@@ -152,6 +132,7 @@ class ChainConfig:
         """
         if self._data_dir is None:
             return get_default_data_dir(self.chain_identifier)
+
         else:
             return self._data_dir
 
@@ -176,8 +157,10 @@ class ChainConfig:
         if self._nodekey_path is None:
             if self._nodekey is not None:
                 return None
+
             else:
                 return get_nodekey_path(self.chain_identifier, self.data_dir)
+
         else:
             return self._nodekey_path
 
@@ -190,14 +173,18 @@ class ChainConfig:
         if self._nodekey is None:
             try:
                 return load_nodekey(self.nodekey_path)
+
             except FileNotFoundError:
                 # no file at the nodekey_path so we have a null nodekey
                 return None
+
         else:
             if isinstance(self._nodekey, bytes):
                 return keys.PrivateKey(self._nodekey)
+
             elif isinstance(self._nodekey, PrivateKey):
                 return self._nodekey
+
             return self._nodekey
 
     @nodekey.setter
@@ -223,6 +210,7 @@ class ChainConfig:
                 CHAIN_CONFIG_DEFAULTS,
                 no_default=True,
             )
+
         except KeyError:
             raise ValueError(
                 "The network_id for the chain '{0}' was not explicitely set and "
@@ -245,7 +233,9 @@ def construct_chain_config_params(args):
 
     if args.nodekey_path and args.nodekey:
         raise ValueError("Cannot provide both nodekey_path and nodekey")
+
     elif args.nodekey_path is not None:
         yield 'nodekey_path', args.nodekey_path
+
     elif args.nodekey is not None:
         yield 'nodekey', decode_hex(args.nodekey)

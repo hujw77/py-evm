@@ -9,11 +9,7 @@ import rlp
 
 import pytest
 
-from cytoolz import (
-    curry,
-    identity,
-    merge,
-)
+from cytoolz import (curry, identity, merge)
 
 from eth_utils import (
     big_endian_to_int,
@@ -26,25 +22,16 @@ from eth_utils import (
     to_tuple,
     to_dict,
 )
-from eth_utils.curried import (
-    hexstr_if_str,
-)
+from eth_utils.curried import (hexstr_if_str,)
 
 from evm import MainnetChain
-from evm.constants import (
-    CREATE_CONTRACT_ADDRESS,
-)
+from evm.constants import (CREATE_CONTRACT_ADDRESS,)
 from evm.db import get_db_backend
 from evm.db.chain import ChainDB
-from evm.utils.state import (
-    diff_state_db,
-)
-from evm.utils.rlp import (
-    diff_rlp_object,
-)
+from evm.utils.state import (diff_state_db,)
+from evm.utils.rlp import (diff_rlp_object,)
 from evm.tools.test_builder.normalization import (
-    normalize_environment,
-    normalize_transaction_group,
+    normalize_environment, normalize_transaction_group
 )
 from evm.vm.forks import (
     ByzantiumVM,
@@ -55,7 +42,7 @@ from evm.vm.forks import (
 )
 
 
-#
+# 
 # Filesystem fixture loading.
 #
 @to_tuple
@@ -78,11 +65,9 @@ def find_fixtures(fixtures_base_dir):
     the JSON test fixtures directory.
     """
     all_fixture_paths = find_fixture_files(fixtures_base_dir)
-
     for fixture_path in sorted(all_fixture_paths):
         with open(fixture_path) as fixture_file:
             fixtures = json.load(fixture_file)
-
         for fixture_key in sorted(fixtures.keys()):
             yield (fixture_path, fixture_key)
 
@@ -100,7 +85,6 @@ def filter_fixtures(all_fixtures, fixtures_base_dir, mark_fn=None, ignore_fn=Non
     for fixture_data in all_fixtures:
         fixture_path = fixture_data[0]
         fixture_relpath = os.path.relpath(fixture_path, fixtures_base_dir)
-
         if ignore_fn:
             if ignore_fn(fixture_relpath, *fixture_data[1:]):
                 continue
@@ -108,10 +92,7 @@ def filter_fixtures(all_fixtures, fixtures_base_dir, mark_fn=None, ignore_fn=Non
         if mark_fn is not None:
             mark = mark_fn(fixture_relpath, *fixture_data[1:])
             if mark:
-                yield pytest.param(
-                    (fixture_path, *fixture_data[1:]),
-                    marks=mark,
-                )
+                yield pytest.param((fixture_path, *fixture_data[1:]), marks=mark)
                 continue
 
         yield fixture_data
@@ -123,6 +104,7 @@ def hash_log_entries(log_entries):
     execution.
     """
     from evm.rlp.logs import Log
+
     logs = [Log(*entry) for entry in log_entries]
     encoded_logs = rlp.encode(logs)
     logs_hash = keccak(encoded_logs)
@@ -152,7 +134,7 @@ def load_fixture(fixture_path, fixture_key, normalize_fn=identity):
     return fixture
 
 
-#
+# 
 # RLP Diffing
 #
 def assert_rlp_equal(left, right):
@@ -162,23 +144,25 @@ def assert_rlp_equal(left, right):
     """
     if left == right:
         return
+
     mismatched_fields = diff_rlp_object(left, right)
     error_message = (
         "RLP objects not equal for {0} fields:\n - {1}".format(
             len(mismatched_fields),
-            "\n - ".join(tuple(
-                "{0}:\n    (actual)  : {1}\n    (expected): {2}".format(
-                    field_name, actual, expected
+            "\n - ".join(
+                tuple(
+                    "{0}:\n    (actual)  : {1}\n    (expected): {2}".format(
+                        field_name, actual, expected
+                    )
+                    for field_name, actual, expected in mismatched_fields
                 )
-                for field_name, actual, expected
-                in mismatched_fields
-            )),
+            ),
         )
     )
     raise AssertionError(error_message)
 
 
-#
+# 
 # Fixture Normalization Primitives
 #
 @functools.lru_cache(maxsize=1024)
@@ -190,8 +174,10 @@ def to_int(value):
     if is_0x_prefixed(value):
         if len(value) == 2:
             return 0
+
         else:
             return int(value, 16)
+
     else:
         return int(value)
 
@@ -199,7 +185,7 @@ def to_int(value):
 robust_decode_hex = hexstr_if_str(to_bytes)
 
 
-#
+# 
 # Pytest fixture generation
 #
 def idfn(fixture_params):
@@ -221,10 +207,9 @@ def get_fixtures_file_hash(all_fixture_paths):
 
 
 @curry
-def generate_fixture_tests(metafunc,
-                           base_fixture_path,
-                           filter_fn=identity,
-                           preprocess_fn=identity):
+def generate_fixture_tests(
+    metafunc, base_fixture_path, filter_fn=identity, preprocess_fn=identity
+):
     """
     Helper function for use with `pytest_generate_tests` which will use the
     pytest caching facilities to reduce the load time for fixture tests.
@@ -237,55 +222,52 @@ def generate_fixture_tests(metafunc,
        each fork.
     """
     fixture_namespace = os.path.basename(base_fixture_path)
-
     if 'fixture_data' in metafunc.fixturenames:
         all_fixture_paths = find_fixture_files(base_fixture_path)
         current_file_hash = get_fixtures_file_hash(all_fixture_paths)
-
         data_cache_key = 'pyevm/statetest/fixtures/{0}/data'.format(fixture_namespace)
-        file_hash_cache_key = 'pyevm/statetest/fixtures/{0}/data-hash'.format(fixture_namespace)
-
+        file_hash_cache_key = 'pyevm/statetest/fixtures/{0}/data-hash'.format(
+            fixture_namespace
+        )
         cached_file_hash = metafunc.config.cache.get(file_hash_cache_key, None)
         cached_fixture_data = metafunc.config.cache.get(data_cache_key, None)
-
-        bust_cache = any((
-            cached_file_hash is None,
-            cached_fixture_data is None,
-            cached_file_hash != current_file_hash,
-        ))
-
+        bust_cache = any(
+            (
+                cached_file_hash is None,
+                cached_fixture_data is None,
+                cached_file_hash != current_file_hash,
+            )
+        )
         if bust_cache:
             all_fixtures = find_fixtures(base_fixture_path)
-
             metafunc.config.cache.set(data_cache_key, all_fixtures)
             metafunc.config.cache.set(file_hash_cache_key, current_file_hash)
         else:
             all_fixtures = cached_fixture_data
-
         if not len(all_fixtures):
             raise AssertionError(
                 "Suspiciously found zero fixtures: {0}".format(base_fixture_path)
             )
 
         filtered_fixtures = filter_fn(preprocess_fn(all_fixtures))
-
         metafunc.parametrize('fixture_data', filtered_fixtures, ids=idfn)
 
 
-#
+# 
 # Fixture Normalizers
 #
 def normalize_unsigned_transaction(transaction, indexes):
     normalized = normalize_transaction_group(transaction)
-    return merge(normalized, {
-        transaction_key: normalized[transaction_key][indexes[index_key]]
-        for transaction_key, index_key in [
-            ("gasLimit", "gas"),
-            ("value", "value"),
-            ("data", "data"),
-        ]
-        if index_key in indexes
-    })
+    return merge(
+        normalized,
+        {
+            transaction_key: normalized[transaction_key][indexes[index_key]]
+            for transaction_key, index_key in [
+                ("gasLimit", "gas"), ("value", "value"), ("data", "data")
+            ]
+            if index_key in indexes
+        },
+    )
 
 
 def normalize_account_state(account_state):
@@ -298,13 +280,15 @@ def normalize_account_state(account_state):
                 to_int(slot): big_endian_to_int(decode_hex(value))
                 for slot, value in state['storage'].items()
             },
-        } for address, state in account_state.items()
+        }
+        for address, state in account_state.items()
     }
 
 
 @to_dict
 def normalize_post_state(post_state):
     yield 'hash', decode_hex(post_state['hash'])
+
     if 'logs' in post_state:
         yield 'logs', decode_hex(post_state['logs'])
 
@@ -312,17 +296,14 @@ def normalize_post_state(post_state):
 @curry
 def normalize_statetest_fixture(fixture, fork, post_state_index):
     post_state = fixture['post'][fork][post_state_index]
-
     normalized_fixture = {
         'env': normalize_environment(fixture['env']),
         'pre': normalize_account_state(fixture['pre']),
         'post': normalize_post_state(post_state),
         'transaction': normalize_unsigned_transaction(
-            fixture['transaction'],
-            post_state['indexes'],
+            fixture['transaction'], post_state['indexes']
         ),
     }
-
     return normalized_fixture
 
 
@@ -343,13 +324,14 @@ def normalize_callcreates(callcreates):
         {
             'data': decode_hex(created_call['data']),
             'destination': (
-                to_canonical_address(created_call['destination'])
-                if created_call['destination']
-                else CREATE_CONTRACT_ADDRESS
+                to_canonical_address(created_call['destination']) if created_call[
+                    'destination'
+                ] else CREATE_CONTRACT_ADDRESS
             ),
             'gasLimit': to_int(created_call['gasLimit']),
             'value': to_int(created_call['value']),
-        } for created_call in callcreates
+        }
+        for created_call in callcreates
     ]
 
 
@@ -391,21 +373,17 @@ def normalize_signed_transaction(transaction):
 
 def normalize_transactiontest_fixture(fixture):
     normalized_fixture = {}
-
     if 'blocknumber' in fixture:
         normalized_fixture['blocknumber'] = to_int(fixture['blocknumber'])
-
     try:
         normalized_fixture['rlp'] = decode_hex(fixture['rlp'])
     except binascii.Error:
         normalized_fixture['rlpHex'] = fixture['rlp']
-
     if "sender" in fixture:
         # intentionally not normalized.
         normalized_fixture["transaction"] = fixture['transaction']
         # intentionally not normalized.
         normalized_fixture['sender'] = fixture['sender']
-
     return normalized_fixture
 
 
@@ -439,51 +417,46 @@ def normalize_block_header(header):
 
 def normalize_block(block):
     normalized_block = {}
-
     try:
         normalized_block['rlp'] = decode_hex(block['rlp'])
     except ValueError as err:
         normalized_block['rlp_error'] = err
-
     if 'blockHeader' in block:
         normalized_block['blockHeader'] = normalize_block_header(block['blockHeader'])
     if 'transactions' in block:
         normalized_block['transactions'] = [
             normalize_signed_transaction(transaction)
-            for transaction
-            in block['transactions']
+            for transaction in block['transactions']
         ]
     return normalized_block
 
 
 def normalize_blockchain_fixtures(fixture):
     normalized_fixture = {
-        'blocks': [normalize_block(block_fixture) for block_fixture in fixture['blocks']],
+        'blocks': [
+            normalize_block(block_fixture) for block_fixture in fixture['blocks']
+        ],
         'genesisBlockHeader': normalize_block_header(fixture['genesisBlockHeader']),
         'lastblockhash': decode_hex(fixture['lastblockhash']),
         'pre': normalize_account_state(fixture['pre']),
         'postState': normalize_account_state(fixture['postState']),
         'network': fixture['network'],
     }
-
     if 'genesisRLP' in fixture:
         normalized_fixture['genesisRLP'] = decode_hex(fixture['genesisRLP'])
-
     return normalized_fixture
 
 
-#
+# 
 # State Setup
 #
 def setup_state_db(desired_state, state_db):
     for account, account_data in desired_state.items():
         for slot, value in account_data['storage'].items():
             state_db.set_storage(account, slot, value)
-
         nonce = account_data['nonce']
         code = account_data['code']
         balance = account_data['balance']
-
         state_db.set_nonce(account, nonce)
         state_db.set_code(account, code)
         state_db.set_balance(account, balance)
@@ -515,64 +488,49 @@ def verify_state_db(expected_state, state_db):
                 )
         raise AssertionError(
             "State DB did not match expected state on {0} values:\n"
-            "{1}".format(
-                len(error_messages),
-                "\n - ".join(error_messages),
-            )
+            "{1}".format(len(error_messages), "\n - ".join(error_messages))
         )
 
 
 def chain_vm_configuration(fixture):
     network = fixture['network']
-
     if network == 'Frontier':
-        return (
-            (0, FrontierVM),
-        )
+        return ((0, FrontierVM),)
+
     elif network == 'Homestead':
         HomesteadVM = BaseHomesteadVM.configure(support_dao_fork=False)
-        return (
-            (0, HomesteadVM),
-        )
+        return ((0, HomesteadVM),)
+
     elif network == 'EIP150':
-        return (
-            (0, TangerineWhistleVM),
-        )
+        return ((0, TangerineWhistleVM),)
+
     elif network == 'EIP158':
-        return (
-            (0, SpuriousDragonVM),
-        )
+        return ((0, SpuriousDragonVM),)
+
     elif network == 'Byzantium':
-        return (
-            (0, ByzantiumVM),
-        )
+        return ((0, ByzantiumVM),)
+
     elif network == 'FrontierToHomesteadAt5':
         HomesteadVM = BaseHomesteadVM.configure(support_dao_fork=False)
-        return (
-            (0, FrontierVM),
-            (5, HomesteadVM),
-        )
+        return ((0, FrontierVM), (5, HomesteadVM))
+
     elif network == 'HomesteadToEIP150At5':
         HomesteadVM = BaseHomesteadVM.configure(support_dao_fork=False)
-        return (
-            (0, HomesteadVM),
-            (5, TangerineWhistleVM),
-        )
+        return ((0, HomesteadVM), (5, TangerineWhistleVM))
+
     elif network == 'HomesteadToDaoAt5':
         HomesteadVM = BaseHomesteadVM.configure(
-            support_dao_fork=True,
-            dao_fork_block_number=5,
+            support_dao_fork=True, dao_fork_block_number=5
         )
-        return (
-            (0, HomesteadVM),
-        )
+        return ((0, HomesteadVM),)
+
     elif network == 'EIP158ToByzantiumAt5':
-        return (
-            (0, SpuriousDragonVM),
-            (5, ByzantiumVM),
-        )
+        return ((0, SpuriousDragonVM), (5, ByzantiumVM))
+
     else:
-        raise ValueError("Network {0} does not match any known VM rules".format(network))
+        raise ValueError(
+            "Network {0} does not match any known VM rules".format(network)
+        )
 
 
 def genesis_params_from_fixture(fixture):
@@ -597,14 +555,10 @@ def genesis_params_from_fixture(fixture):
 
 def new_chain_from_fixture(fixture):
     db = ChainDB(get_db_backend())
-
     vm_config = chain_vm_configuration(fixture)
-
     ChainFromFixture = MainnetChain.configure(
-        'ChainFromFixture',
-        vm_configuration=vm_config,
+        'ChainFromFixture', vm_configuration=vm_config
     )
-
     return ChainFromFixture.from_genesis(
         db,
         genesis_params=genesis_params_from_fixture(fixture),
@@ -621,20 +575,19 @@ def apply_fixture_block_to_chain(block_fixture, chain):
     # fixture to look up the correct block class.
     if 'blockHeader' in block_fixture:
         block_number = block_fixture['blockHeader']['number']
-        block_class = chain.get_vm_class_for_block_number(block_number).get_block_class()
+        block_class = chain.get_vm_class_for_block_number(
+            block_number
+        ).get_block_class()
     else:
         block_class = chain.get_vm().get_block_class()
-
     block = rlp.decode(block_fixture['rlp'], sedes=block_class)
-
     mined_block = chain.import_block(block)
-
     rlp_encoded_mined_block = rlp.encode(mined_block, sedes=block_class)
-
     return (block, mined_block, rlp_encoded_mined_block)
 
 
 def should_run_slow_tests():
     if os.environ.get('TRAVIS_EVENT_TYPE') == 'cron':
         return True
+
     return False

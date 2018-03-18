@@ -1,6 +1,5 @@
 import pytest
 
-
 # from https://github.com/ethereum/tests/blob/c951a3c105d600ccd8f1c3fc87856b2bcca3df0a/BasicTests/txtest.json  # noqa: E501
 TRANSACTION_FIXTURES = [
     {
@@ -12,7 +11,7 @@ TRANSACTION_FIXTURES = [
         "to": "13978aee95f38490e9769c39b2773ed763d9cd5f",
         "value": 10000000000000000,
         "data": "",
-        "signed": "f86b8085e8d4a510008227109413978aee95f38490e9769c39b2773ed763d9cd5f872386f26fc10000801ba0eab47c1a49bf2fe5d40e01d313900e19ca485867d462fe06e139e3a536c6d4f4a014a569d327dcda4b29f74f93c0e9729d2f49ad726e703f9cd90dbb0fbf6649f1"  # noqa: E501
+        "signed": "f86b8085e8d4a510008227109413978aee95f38490e9769c39b2773ed763d9cd5f872386f26fc10000801ba0eab47c1a49bf2fe5d40e01d313900e19ca485867d462fe06e139e3a536c6d4f4a014a569d327dcda4b29f74f93c0e9729d2f49ad726e703f9cd90dbb0fbf6649f1",  # noqa: E501
     },
     {
         "chainId": None,
@@ -23,7 +22,7 @@ TRANSACTION_FIXTURES = [
         "to": "",
         "value": 0,
         "data": "6025515b525b600a37f260003556601b596020356000355760015b525b54602052f260255860005b525b54602052f2",  # noqa: E501
-        "signed": "f87f8085e8d4a510008227108080af6025515b525b600a37f260003556601b596020356000355760015b525b54602052f260255860005b525b54602052f21ba05afed0244d0da90b67cf8979b0f246432a5112c0d31e8d5eedd2bc17b171c694a0bb1035c834677c2e1185b8dc90ca6d1fa585ab3d7ef23707e1a497a98e752d1b"  # noqa: E501
+        "signed": "f87f8085e8d4a510008227108080af6025515b525b600a37f260003556601b596020356000355760015b525b54602052f260255860005b525b54602052f21ba05afed0244d0da90b67cf8979b0f246432a5112c0d31e8d5eedd2bc17b171c694a0bb1035c834677c2e1185b8dc90ca6d1fa585ab3d7ef23707e1a497a98e752d1b",  # noqa: E501
     },
     {
         "chainId": 1,
@@ -37,29 +36,17 @@ TRANSACTION_FIXTURES = [
         "signed": "0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428",  # noqa: E501
     },
 ]
-
-
 SHARDING_TRANSACTION_FIXTURES = [
-    {
-        "chain_id": 1,
-        "shard_id": 1,
-        "to": "0x2863c51de9fcb96542a07186fe3aeda6bb8a116d",
-        # rlp-encoded of [destination, value, msg_data, vrs]
-        # below example is
-        # rlp.encode([
-        #     b'82df0950f5a951637e0307cdcb4c672f298b8bc6',
-        #     1000000,
-        #     b'',
-        #     b'\x01\x02\x03'
-        # ])
-        # in hex
-        "data": "0xf2a838326466303935306635613935313633376530333037636463623463363732663239386238626336830f42408083010203",  # noqa: E501
-        "gas": 2000000,
-        "access_list": "",
-        "code": "",
-        "salt": "",
-        "intrinsic_gas": 24468,
-    },
+    {"chain_id": 1, "shard_id": 1, "to": "0x2863c51de9fcb96542a07186fe3aeda6bb8a116d", "data": "0xf2a838326466303935306635613935313633376530333037636463623463363732663239386238626336830f42408083010203", "gas": 2000000, "access_list": "", "code": "", "salt": "", "intrinsic_gas": 24468},
+    # rlp-encoded of [destination, value, msg_data, vrs]
+    # below example is
+    # rlp.encode([
+    #     b'82df0950f5a951637e0307cdcb4c672f298b8bc6',
+    #     1000000,
+    #     b'',
+    #     b'\x01\x02\x03'
+    # ])
+    # in hex  # noqa: E501
     {
         "chain_id": 1,
         "shard_id": 3,

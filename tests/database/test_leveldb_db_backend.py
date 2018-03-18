@@ -1,9 +1,6 @@
 import pytest
 from evm.db.backends.memory import MemoryDB
-from evm.db import (
-    get_db_backend,
-)
-
+from evm.db import (get_db_backend,)
 
 pytest.importorskip('leveldb')
 
@@ -11,8 +8,7 @@ pytest.importorskip('leveldb')
 # Sets db backend to leveldb
 @pytest.fixture
 def config_env(monkeypatch):
-    monkeypatch.setenv('CHAIN_DB_BACKEND_CLASS',
-                       'evm.db.backends.level.LevelDB')
+    monkeypatch.setenv('CHAIN_DB_BACKEND_CLASS', 'evm.db.backends.level.LevelDB')
 
 
 @pytest.fixture

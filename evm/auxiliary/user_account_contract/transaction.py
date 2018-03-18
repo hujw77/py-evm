@@ -1,8 +1,6 @@
 from eth_keys import keys
 
-from evm.vm.forks.sharding.transactions import (
-    ShardingTransaction,
-)
+from evm.vm.forks.sharding.transactions import (ShardingTransaction,)
 
 from evm.validation import (
     validate_uint256,
@@ -13,14 +11,9 @@ from evm.validation import (
     validate_is_bytes,
 )
 
-from evm.utils.transactions import (
-    V_OFFSET,
-)
+from evm.utils.transactions import (V_OFFSET,)
 
-from .utils import (
-    assemble_data_field,
-    get_message_for_signing,
-)
+from .utils import (assemble_data_field, get_message_for_signing)
 
 
 class UserAccountTransaction(ShardingTransaction):
@@ -50,13 +43,10 @@ class UserAccountTransaction(ShardingTransaction):
         self.nonce = nonce
         self.gas_price = gas_price
         self.msg_data = msg_data
-
         self.v = v
         self.r = r
         self.s = s
-
         data = assemble_data_field(self, include_signature=True)
-
         super().__init__(
             chain_id=chain_id,
             shard_id=shard_id,
@@ -65,7 +55,7 @@ class UserAccountTransaction(ShardingTransaction):
             gas=gas,
             access_list=access_list,
             code=b'',
-            salt=b'\x00' * 32,
+            salt=b'\x00' * 32
         )
 
     @classmethod
@@ -81,23 +71,19 @@ class UserAccountTransaction(ShardingTransaction):
     def validate(self):
         super().validate()
         validate_uint256(self.gas_price, "Transaction.gas_price")
-
         validate_canonical_address(self.destination, "Transaction.destination")
         validate_uint256(self.value, "Transaction.value")
         validate_uint256(self.min_block, "Transaction.min_block")
         validate_uint256(self.max_block, "Transaction.max_block")
         validate_uint256(self.nonce, "Transaction.nonce")
         validate_is_bytes(self.msg_data, "Transaction.msg_data")
-
         validate_uint256(self.v, title="Transaction.v")
         validate_uint256(self.r, title="Transaction.r")
         validate_uint256(self.s, title="Transaction.s")
-
         validate_lt_secpk1n(self.r, title="Transaction.r")
         validate_gte(self.r, minimum=1, title="Transaction.r")
         validate_lt_secpk1n(self.s, title="Transaction.s")
         validate_gte(self.s, minimum=1, title="Transaction.s")
-
         validate_gte(self.v, minimum=27, title="Transaction.v")
         validate_lte(self.v, maximum=28, title="Transaction.v")
 
@@ -126,10 +112,8 @@ class UnsignedUserAccountTransaction(ShardingTransaction):
         self.nonce = nonce
         self.gas_price = gas_price
         self.msg_data = msg_data
-
         # will be used for signing
         data = assemble_data_field(self, include_signature=False)
-
         super().__init__(
             chain_id=chain_id,
             shard_id=shard_id,
@@ -138,13 +122,12 @@ class UnsignedUserAccountTransaction(ShardingTransaction):
             gas=gas,
             access_list=access_list,
             code=b"",
-            salt=b'\x00' * 32,
+            salt=b'\x00' * 32
         )
 
     def validate(self):
         super().validate()
         validate_uint256(self.gas_price, "Transaction.gas_price")
-
         validate_canonical_address(self.destination, "Transaction.destination")
         validate_uint256(self.value, "Transaction.value")
         validate_uint256(self.min_block, "Transaction.min_block")

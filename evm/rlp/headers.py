@@ -1,19 +1,10 @@
 import time
 
 import rlp
-from rlp.sedes import (
-    big_endian_int,
-    Binary,
-    binary,
-)
+from rlp.sedes import (big_endian_int, Binary, binary)
 
-from cytoolz import (
-    first,
-)
-from eth_utils import (
-    keccak,
-    to_dict,
-)
+from cytoolz import (first,)
+from eth_utils import (keccak, to_dict)
 
 from evm.constants import (
     ZERO_ADDRESS,
@@ -24,38 +15,17 @@ from evm.constants import (
     EMPTY_SHA3,
     SHARD_GAS_LIMIT,
 )
-from evm.exceptions import (
-    ValidationError,
-)
+from evm.exceptions import (ValidationError,)
 
-from evm.utils.hexadecimal import (
-    encode_hex,
-)
-from evm.utils.numeric import (
-    int_to_bytes32,
-)
-from evm.utils.padding import (
-    pad32,
-)
+from evm.utils.hexadecimal import (encode_hex,)
+from evm.utils.numeric import (int_to_bytes32,)
+from evm.utils.padding import (pad32,)
 
-from .sedes import (
-    address,
-    hash32,
-    int256,
-    trie_root,
-)
+from .sedes import (address, hash32, int256, trie_root)
 
-from evm.vm.execution_context import (
-    ExecutionContext,
-)
+from evm.vm.execution_context import (ExecutionContext,)
 
-from typing import (
-    Tuple,
-    Union,
-    Iterator,
-    List,
-    Any
-)
+from typing import (Tuple, Union, Iterator, List, Any)
 
 
 class BlockHeader(rlp.Serializable):
@@ -74,25 +44,27 @@ class BlockHeader(rlp.Serializable):
         ('timestamp', big_endian_int),
         ('extra_data', binary),
         ('mix_hash', binary),
-        ('nonce', Binary(8, allow_empty=True))
+        ('nonce', Binary(8, allow_empty=True)),
     ]
 
-    def __init__(self,
-                 difficulty: int,
-                 block_number: int,
-                 gas_limit: int,
-                 timestamp: int=None,
-                 coinbase: bytes=ZERO_ADDRESS,
-                 parent_hash: bytes=ZERO_HASH32,
-                 uncles_hash: bytes=EMPTY_UNCLE_HASH,
-                 state_root: bytes=BLANK_ROOT_HASH,
-                 transaction_root: bytes=BLANK_ROOT_HASH,
-                 receipt_root: bytes=BLANK_ROOT_HASH,
-                 bloom: int=0,
-                 gas_used: int=0,
-                 extra_data: bytes=b'',
-                 mix_hash: bytes=ZERO_HASH32,
-                 nonce: bytes=GENESIS_NONCE) -> None:
+    def __init__(
+        self,
+        difficulty: int,
+        block_number: int,
+        gas_limit: int,
+        timestamp: int = None,
+        coinbase: bytes = ZERO_ADDRESS,
+        parent_hash: bytes = ZERO_HASH32,
+        uncles_hash: bytes = EMPTY_UNCLE_HASH,
+        state_root: bytes = BLANK_ROOT_HASH,
+        transaction_root: bytes = BLANK_ROOT_HASH,
+        receipt_root: bytes = BLANK_ROOT_HASH,
+        bloom: int = 0,
+        gas_used: int = 0,
+        extra_data: bytes = b'',
+        mix_hash: bytes = ZERO_HASH32,
+        nonce: bytes = GENESIS_NONCE,
+    ) -> None:
         if timestamp is None:
             timestamp = int(time.time())
         super(BlockHeader, self).__init__(
@@ -115,8 +87,7 @@ class BlockHeader(rlp.Serializable):
 
     def __repr__(self) -> str:
         return '<BlockHeader #{0} {1}>'.format(
-            self.block_number,
-            encode_hex(self.hash)[2:10],
+            self.block_number, encode_hex(self.hash)[2:10]
         )
 
     @property
@@ -125,24 +96,25 @@ class BlockHeader(rlp.Serializable):
 
     @property
     def mining_hash(self) -> bytes:
-        return keccak(
-            rlp.encode(self, BlockHeader.exclude(['mix_hash', 'nonce'])))
+        return keccak(rlp.encode(self, BlockHeader.exclude(['mix_hash', 'nonce'])))
 
     @property
     def hex_hash(self):
         return encode_hex(self.hash)
 
     @classmethod
-    def from_parent(cls,
-                    parent: 'BlockHeader',
-                    gas_limit: int,
-                    difficulty: int,
-                    timestamp: int,
-                    coinbase: bytes=ZERO_ADDRESS,
-                    nonce: bytes=None,
-                    extra_data: bytes=None,
-                    transaction_root: bytes=None,
-                    receipt_root: bytes=None) -> 'BlockHeader':
+    def from_parent(
+        cls,
+        parent: 'BlockHeader',
+        gas_limit: int,
+        difficulty: int,
+        timestamp: int,
+        coinbase: bytes = ZERO_ADDRESS,
+        nonce: bytes = None,
+        extra_data: bytes = None,
+        transaction_root: bytes = None,
+        receipt_root: bytes = None,
+    ) -> 'BlockHeader':
         """
         Initialize a new block header with the `parent` header as the block's
         parent hash.
@@ -164,21 +136,22 @@ class BlockHeader(rlp.Serializable):
             header_kwargs['transaction_root'] = transaction_root
         if receipt_root is not None:
             header_kwargs['receipt_root'] = receipt_root
-
         header = cls(**header_kwargs)
         return header
 
     def clone(self) -> 'BlockHeader':
         # Create a new BlockHeader object with the same fields.
-        return self.__class__(**{
-            field_name: getattr(self, field_name)
-            for field_name
-            in first(zip(*self.fields))
-        })
+        return self.__class__(
+            **
+            {
+                field_name: getattr(self, field_name)
+                for field_name in first(zip(*self.fields))
+            }
+        )
 
     def create_execution_context(
-            self, prev_hashes: Union[Tuple[bytes], Tuple[bytes, bytes]]) -> ExecutionContext:
-
+        self, prev_hashes: Union[Tuple[bytes], Tuple[bytes, bytes]]
+    ) -> ExecutionContext:
         return ExecutionContext(
             coinbase=self.coinbase,
             timestamp=self.timestamp,
@@ -202,17 +175,19 @@ class CollationHeader(rlp.Serializable):
         ("number", big_endian_int),
     ]
 
-    def __init__(self,
-                 shard_id: int,
-                 expected_period_number: int,
-                 period_start_prevhash: bytes,
-                 parent_hash: bytes,
-                 number: int,
-                 transaction_root: bytes=EMPTY_SHA3,
-                 coinbase: bytes=ZERO_ADDRESS,
-                 state_root: bytes=EMPTY_SHA3,
-                 receipt_root: bytes=EMPTY_SHA3,
-                 sig: bytes=b'') -> None:
+    def __init__(
+        self,
+        shard_id: int,
+        expected_period_number: int,
+        period_start_prevhash: bytes,
+        parent_hash: bytes,
+        number: int,
+        transaction_root: bytes = EMPTY_SHA3,
+        coinbase: bytes = ZERO_ADDRESS,
+        state_root: bytes = EMPTY_SHA3,
+        receipt_root: bytes = EMPTY_SHA3,
+        sig: bytes = b'',
+    ) -> None:
         super(CollationHeader, self).__init__(
             shard_id=shard_id,
             expected_period_number=expected_period_number,
@@ -227,31 +202,33 @@ class CollationHeader(rlp.Serializable):
 
     def __repr__(self) -> str:
         return "<CollationHeader #{0} {1} (shard #{2})>".format(
-            self.expected_period_number,
-            encode_hex(self.hash)[2:10],
-            self.shard_id,
+            self.expected_period_number, encode_hex(self.hash)[2:10], self.shard_id
         )
 
     @property
     def hash(self) -> bytes:
         header_hash = keccak(
-            b''.join((
-                int_to_bytes32(self.shard_id),
-                int_to_bytes32(self.expected_period_number),
-                self.period_start_prevhash,
-                self.parent_hash,
-                self.transaction_root,
-                pad32(self.coinbase),
-                self.state_root,
-                self.receipt_root,
-                int_to_bytes32(self.number),
-            ))
+            b''.join(
+                (
+                    int_to_bytes32(self.shard_id),
+                    int_to_bytes32(self.expected_period_number),
+                    self.period_start_prevhash,
+                    self.parent_hash,
+                    self.transaction_root,
+                    pad32(self.coinbase),
+                    self.state_root,
+                    self.receipt_root,
+                    int_to_bytes32(self.number),
+                )
+            )
         )
         return header_hash
 
     @classmethod
     @to_dict
-    def _deserialize_header_bytes_to_dict(cls, header_bytes: bytes) -> Iterator[Tuple[str, Any]]:
+    def _deserialize_header_bytes_to_dict(
+        cls, header_bytes: bytes
+    ) -> Iterator[Tuple[str, Any]]:
         # assume all fields are padded to 32 bytes
         obj_size = 32
         if len(header_bytes) != obj_size * len(cls.fields):
@@ -259,9 +236,10 @@ class CollationHeader(rlp.Serializable):
                 "Expected header bytes to be of length: {0}. Got length {1} instead.\n- {2}".format(
                     obj_size * len(cls.fields),
                     len(header_bytes),
-                    encode_hex(header_bytes),
+                    encode_hex(header_bytes)
                 )
             )
+
         for idx, field in enumerate(cls.fields):
             field_name, field_type = field
             start_index = idx * obj_size
@@ -282,11 +260,13 @@ class CollationHeader(rlp.Serializable):
         return header
 
     @classmethod
-    def from_parent(cls,
-                    parent: 'CollationHeader',
-                    period_start_prevhash: bytes,
-                    expected_period_number: int,
-                    coinbase: bytes=ZERO_ADDRESS) -> 'CollationHeader':
+    def from_parent(
+        cls,
+        parent: 'CollationHeader',
+        period_start_prevhash: bytes,
+        expected_period_number: int,
+        coinbase: bytes = ZERO_ADDRESS,
+    ) -> 'CollationHeader':
         """
         Initialize a new collation header with the `parent` header as the collation's
         parent hash.
@@ -304,11 +284,13 @@ class CollationHeader(rlp.Serializable):
 
     def clone(self) -> 'CollationHeader':
         # Create a new CollationHeader object with the same fields.
-        return self.__class__(**{
-            field_name: getattr(self, field_name)
-            for field_name
-            in first(zip(*self.fields))
-        })
+        return self.__class__(
+            **
+            {
+                field_name: getattr(self, field_name)
+                for field_name in first(zip(*self.fields))
+            }
+        )
 
     def create_execution_context(self, prev_hashes: List[bytes]) -> ExecutionContext:
         return ExecutionContext(

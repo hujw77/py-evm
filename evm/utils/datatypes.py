@@ -1,13 +1,6 @@
-from cytoolz import (
-    assoc,
-    groupby,
-)
+from cytoolz import (assoc, groupby)
 
-from eth_utils import (
-    to_dict,
-    to_set,
-)
-
+from eth_utils import (to_dict, to_set)
 
 from typing import Any, Dict, Tuple, Iterator, List
 
@@ -42,12 +35,15 @@ def _get_sub_overrides(overrides: Dict[str, Any]) -> Iterator[Tuple[str, Any]]:
 
 @to_dict
 def _get_sub_overrides_by_prop(
-        overrides: Dict[str, Any]) -> Iterator[Tuple[str, Dict[str, List[str]]]]:
+    overrides: Dict[str, Any]
+) -> Iterator[Tuple[str, Dict[str, List[str]]]]:
     # we only want the overrides that are not top level.
     sub_overrides = _get_sub_overrides(overrides)
     key_groups = groupby(_extract_top_level_key, sub_overrides.keys())
     for top_level_key, props in key_groups.items():
-        yield top_level_key, {_extract_tail_key(prop): overrides[prop] for prop in props}
+        yield top_level_key, {
+            _extract_tail_key(prop): overrides[prop] for prop in props
+        }
 
 
 @to_set
@@ -60,22 +56,18 @@ class Configurable(object):
     """
     Base class for simple inline subclassing
     """
-    @classmethod
-    def configure(cls,
-                  __name__=None,
-                  **overrides):
 
+    @classmethod
+    def configure(cls, __name__=None, **overrides):
         if __name__ is None:
             __name__ = cls.__name__
-
         top_level_keys = _get_top_level_keys(overrides)
-
         # overrides that are *local* to this class.
         local_overrides = _get_local_overrides(overrides)
-
         for key in top_level_keys:
             if key == '__name__':
                 continue
+
             elif not hasattr(cls, key):
                 raise TypeError(
                     "The {0}.configure cannot set attributes that are not "
@@ -85,7 +77,6 @@ class Configurable(object):
 
         # overrides that are for sub-properties of this class
         sub_overrides_by_prop = _get_sub_overrides_by_prop(overrides)
-
         for key, sub_overrides in sub_overrides_by_prop.items():
             sub_cls = None  # type: Configurable
             if key in local_overrides:
@@ -103,14 +94,9 @@ class Configurable(object):
                     "Unable to configure property `{0}` on class `{1}`.  The "
                     "property being configured must be a subclass of the "
                     "`Configurable` type.  Instead got the following object "
-                    "instance: {2}".format(
-                        key,
-                        repr(cls),
-                        repr(sub_cls),
-                    )
+                    "instance: {2}".format(key, repr(cls), repr(sub_cls))
                 )
 
             configured_sub_cls = sub_cls.configure(**sub_overrides)
             local_overrides = assoc(local_overrides, key, configured_sub_cls)
-
         return type(__name__, (cls,), local_overrides)

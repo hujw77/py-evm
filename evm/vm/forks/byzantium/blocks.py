@@ -1,16 +1,8 @@
-from rlp.sedes import (
-    CountableList,
-)
-from evm.rlp.headers import (
-    BlockHeader,
-)
-from evm.vm.forks.spurious_dragon.blocks import (
-    SpuriousDragonBlock,
-)
+from rlp.sedes import (CountableList,)
+from evm.rlp.headers import (BlockHeader,)
+from evm.vm.forks.spurious_dragon.blocks import (SpuriousDragonBlock,)
 
-from .transactions import (
-    ByzantiumTransaction,
-)
+from .transactions import (ByzantiumTransaction,)
 
 
 class ByzantiumBlock(SpuriousDragonBlock):
@@ -18,5 +10,5 @@ class ByzantiumBlock(SpuriousDragonBlock):
     fields = [
         ('header', BlockHeader),
         ('transactions', CountableList(transaction_class)),
-        ('uncles', CountableList(BlockHeader))
+        ('uncles', CountableList(BlockHeader)),
     ]

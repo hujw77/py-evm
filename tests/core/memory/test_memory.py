@@ -1,11 +1,7 @@
 import pytest
 
-from evm.vm.memory import (
-    Memory,
-)
-from evm.exceptions import (
-    ValidationError,
-)
+from evm.vm.memory import (Memory,)
+from evm.exceptions import (ValidationError,)
 
 
 @pytest.fixture
@@ -26,13 +22,13 @@ def test_write(memory32):
     assert memory32.bytes == b'1010' + bytearray(28)
 
 
-@pytest.mark.parametrize("start_position", (-1, 2**256, 'a', b'1010'))
+@pytest.mark.parametrize("start_position", (-1, 2 ** 256, 'a', b'1010'))
 def test_write_rejects_invalid_start_position(memory32, start_position):
     with pytest.raises(ValidationError):
         memory32.write(start_position=start_position, size=4, value=b'1010')
 
 
-@pytest.mark.parametrize("size", (-1, 2**256, 'a', b'1010'))
+@pytest.mark.parametrize("size", (-1, 2 ** 256, 'a', b'1010'))
 def test_write_rejects_invalid_size(memory32, size):
     with pytest.raises(ValidationError):
         memory32.write(start_position=0, size=size, value=b'1010')

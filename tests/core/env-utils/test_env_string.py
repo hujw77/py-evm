@@ -1,9 +1,7 @@
 import os
 import pytest
 
-from evm.utils.env import (
-    env_string,
-)
+from evm.utils.env import (env_string,)
 
 
 def test_env_string_with_basic_usage(monkeypatch):
@@ -12,7 +10,6 @@ def test_env_string_with_basic_usage(monkeypatch):
     string.
     """
     monkeypatch.setenv('TEST_BOOLEAN_ENV_VARIABLE', 'test-value')
-
     actual = env_string('TEST_BOOLEAN_ENV_VARIABLE')
     assert actual == 'test-value'
 
@@ -23,7 +20,6 @@ def test_env_string_with_default_value(monkeypatch):
     provided, the default is retured.
     """
     assert 'TEST_BOOLEAN_ENV_VARIABLE' not in os.environ
-
     actual = env_string('TEST_BOOLEAN_ENV_VARIABLE', default='test-value')
     assert actual == 'test-value'
 
@@ -34,7 +30,6 @@ def test_env_string_with_required():
     provided, the default is retured.
     """
     assert 'TEST_BOOLEAN_ENV_VARIABLE' not in os.environ
-
     with pytest.raises(KeyError):
         env_string('TEST_BOOLEAN_ENV_VARIABLE', required=True)
 

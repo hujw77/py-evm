@@ -1,38 +1,24 @@
 from contextlib import contextmanager
 import logging
 
-from abc import (
-    ABCMeta,
-    abstractmethod
-)
+from abc import (ABCMeta, abstractmethod)
 
-from cytoolz import (
-    merge,
-)
+from cytoolz import (merge,)
 
-from evm.constants import (
-    MAX_PREV_HEADER_DEPTH,
-)
-from evm.db.tracked import (
-    AccessLogs,
-)
-from evm.db.trie import (
-    make_trie_root_and_nodes,
-)
-from evm.utils.datatypes import (
-    Configurable,
-)
+from evm.constants import (MAX_PREV_HEADER_DEPTH,)
+from evm.db.tracked import (AccessLogs,)
+from evm.db.trie import (make_trie_root_and_nodes,)
+from evm.utils.datatypes import (Configurable,)
 
 
 class BaseVMState(Configurable, metaclass=ABCMeta):
-    #
+    # 
     # Set from __init__
     #
     _chaindb = None
     execution_context = None
     state_root = None
     receipts = None
-
     block_class = None
     computation_class = None
     trie_class = None
@@ -46,17 +32,16 @@ class BaseVMState(Configurable, metaclass=ABCMeta):
         self.receipts = receipts
         self.access_logs = AccessLogs()
 
-    #
+    # 
     # Logging
     #
     @property
     def logger(self):
         return logging.getLogger('evm.vm_state.{0}'.format(self.__class__.__name__))
 
-    #
+    # 
     # Block Object Properties (in opcodes)
     #
-
     @property
     def coinbase(self):
         return self.execution_context.coinbase
@@ -77,24 +62,25 @@ class BaseVMState(Configurable, metaclass=ABCMeta):
     def gas_limit(self):
         return self.execution_context.gas_limit
 
-    #
+    # 
     # Helpers
     #
     @property
     def gas_used(self):
         if self.receipts:
             return self.receipts[-1].gas_used
+
         else:
             return 0
 
-    #
+    # 
     # read only state_db
     #
     @property
     def read_only_state_db(self):
         return self._chaindb.get_state_db(self.state_root, read_only=True)
 
-    #
+    # 
     # mutable state_db
     #
     @contextmanager
@@ -104,34 +90,28 @@ class BaseVMState(Configurable, metaclass=ABCMeta):
 
         if self.state_root != state.root_hash:
             self.set_state_root(state.root_hash)
-
         self.access_logs.reads.update(state.db.access_logs.reads)
         self.access_logs.writes.update(state.db.access_logs.writes)
-
         # remove the reference to the underlying `db` object to ensure that no
         # further modifications can occur using the `State` object after
         # leaving the context.
         state.db = None
         state._trie = None
 
-    #
+    # 
     # state_db
     #
     @contextmanager
     def state_db(self, read_only=False, access_list=None):
         state = self._chaindb.get_state_db(
-            self.state_root,
-            read_only,
-            access_list=access_list
+            self.state_root, read_only, access_list=access_list
         )
         yield state
 
         if self.state_root != state.root_hash:
             self.set_state_root(state.root_hash)
-
             self.access_logs.reads.update(state.db.access_logs.reads)
             self.access_logs.writes.update(state.db.access_logs.writes)
-
         # remove the reference to the underlying `db` object to ensure that no
         # further modifications can occur using the `State` object after
         # leaving the context.
@@ -140,7 +120,7 @@ class BaseVMState(Configurable, metaclass=ABCMeta):
     def set_state_root(self, state_root):
         self.state_root = state_root
 
-    #
+    # 
     # Access self._chaindb
     #
     def snapshot(self):
@@ -157,11 +137,9 @@ class BaseVMState(Configurable, metaclass=ABCMeta):
         Revert the VM to the state at the snapshot
         """
         state_root, checkpoint_id = snapshot
-
         with self.mutable_state_db() as state_db:
             # first revert the database state root.
             state_db.root_hash = state_root
-
         # now roll the underlying database back
         self._chaindb.revert(checkpoint_id)
 
@@ -179,7 +157,7 @@ class BaseVMState(Configurable, metaclass=ABCMeta):
         """
         return self._chaindb.exists(key)
 
-    #
+    # 
     # Access self.prev_hashes (Read-only)
     #
     def get_ancestor_hash(self, block_number):
@@ -188,16 +166,17 @@ class BaseVMState(Configurable, metaclass=ABCMeta):
         """
         ancestor_depth = self.block_number - block_number - 1
         is_ancestor_depth_out_of_range = (
-            ancestor_depth >= MAX_PREV_HEADER_DEPTH or
-            ancestor_depth < 0 or
-            ancestor_depth >= len(self.execution_context.prev_hashes)
+            ancestor_depth >= MAX_PREV_HEADER_DEPTH
+            or ancestor_depth < 0
+            or ancestor_depth >= len(self.execution_context.prev_hashes)
         )
         if is_ancestor_depth_out_of_range:
             return b''
+
         ancestor_hash = self.execution_context.prev_hashes[ancestor_depth]
         return ancestor_hash
 
-    #
+    # 
     # Computation
     #
     def get_computation(self, message, transaction_context):
@@ -206,11 +185,12 @@ class BaseVMState(Configurable, metaclass=ABCMeta):
         """
         if self.computation_class is None:
             raise AttributeError("No `computation_class` has been set for this VMState")
+
         else:
             computation = self.computation_class(self, message, transaction_context)
         return computation
 
-    #
+    # 
     # Transaction context
     #
     @classmethod
@@ -219,16 +199,16 @@ class BaseVMState(Configurable, metaclass=ABCMeta):
 
         """
         if cls.transaction_context_class is None:
-            raise AttributeError("No `transaction_context_class` has been set for this VMState")
+            raise AttributeError(
+                "No `transaction_context_class` has been set for this VMState"
+            )
+
         return cls.transaction_context_class
 
-    #
+    # 
     # Execution
     #
-    def apply_transaction(
-            self,
-            transaction,
-            block):
+    def apply_transaction(self, transaction, block):
         """
         Apply transaction to the given block
 
@@ -244,7 +224,6 @@ class BaseVMState(Configurable, metaclass=ABCMeta):
         block.make_immutable()
         self.set_state_root(block.header.state_root)
         computation = self.execute_transaction(transaction)
-
         # Set block.
         block, trie_data_dict = self.add_transaction(transaction, computation, block)
         block.header.state_root = self.state_root
@@ -270,33 +249,24 @@ class BaseVMState(Configurable, metaclass=ABCMeta):
         """
         receipt = self.make_receipt(transaction, computation)
         self.add_receipt(receipt)
-
         # Create a new Block object
         block_header = block.header.clone()
         transactions = list(block.transactions)
         block = self.block_class(block_header, transactions)
-
         block.transactions.append(transaction)
-
         # Get trie roots and changed key-values.
         tx_root_hash, tx_kv_nodes = make_trie_root_and_nodes(
-            block.transactions,
-            self.trie_class,
+            block.transactions, self.trie_class
         )
         receipt_root_hash, receipt_kv_nodes = make_trie_root_and_nodes(
-            self.receipts,
-            self.trie_class,
+            self.receipts, self.trie_class
         )
-
         trie_data = merge(tx_kv_nodes, receipt_kv_nodes)
-
         block.bloom_filter |= receipt.bloom
-
         block.header.transaction_root = tx_root_hash
         block.header.receipt_root = receipt_root_hash
         block.header.bloom = int(block.bloom_filter)
         block.header.gas_used = receipt.gas_used
-
         return block, trie_data
 
     def add_receipt(self, receipt):
@@ -309,7 +279,7 @@ class BaseVMState(Configurable, metaclass=ABCMeta):
         """
         raise NotImplementedError("Must be implemented by subclasses")
 
-    #
+    # 
     # Finalization
     #
     def finalize_block(self, block):
@@ -319,22 +289,16 @@ class BaseVMState(Configurable, metaclass=ABCMeta):
         block_reward = self.get_block_reward() + (
             len(block.uncles) * self.get_nephew_reward()
         )
-
         with self.mutable_state_db() as state_db:
             state_db.delta_balance(block.header.coinbase, block_reward)
             self.logger.debug(
-                "BLOCK REWARD: %s -> %s",
-                block_reward,
-                block.header.coinbase,
+                "BLOCK REWARD: %s -> %s", block_reward, block.header.coinbase
             )
-
             for uncle in block.uncles:
                 uncle_reward = self.get_uncle_reward(block.number, uncle)
                 state_db.delta_balance(uncle.coinbase, uncle_reward)
                 self.logger.debug(
-                    "UNCLE REWARD REWARD: %s -> %s",
-                    uncle_reward,
-                    uncle.coinbase,
+                    "UNCLE REWARD REWARD: %s -> %s", uncle_reward, uncle.coinbase
                 )
         block.header.state_root = self.state_root
         return block
@@ -356,6 +320,7 @@ class BaseVMState(Configurable, metaclass=ABCMeta):
 
 
 class BaseTransactionExecutor(metaclass=ABCMeta):
+
     def execute_transaction(self, transaction):
         """
         Execute the transaction in the vm.

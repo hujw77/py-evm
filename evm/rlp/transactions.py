@@ -1,38 +1,18 @@
-from abc import (
-    ABCMeta,
-    abstractmethod
-)
+from abc import (ABCMeta, abstractmethod)
 
 import rlp
-from rlp.sedes import (
-    big_endian_int,
-    binary,
-)
+from rlp.sedes import (big_endian_int, binary)
 
-from eth_utils import (
-    keccak,
-)
+from eth_utils import (keccak,)
 
-from evm.exceptions import (
-    ValidationError,
-)
+from evm.exceptions import (ValidationError,)
 
-from evm.rlp.sedes import (
-    address,
-    access_list as access_list_sedes,
-    hash32,
-)
-from evm.utils.state_access_restriction import (
-    to_prefix_list_form,
-)
+from evm.rlp.sedes import (address, access_list as access_list_sedes, hash32)
+from evm.utils.state_access_restriction import (to_prefix_list_form,)
 
-from evm.computation import (
-    BaseComputation
-)
+from evm.computation import (BaseComputation)
 
-from typing import (
-    Any
-)
+from typing import (Any)
 
 
 class BaseTransaction(rlp.Serializable, metaclass=ABCMeta):
@@ -73,7 +53,6 @@ class BaseTransaction(rlp.Serializable, metaclass=ABCMeta):
     # +-------------------------------------------------------------+
     # | API that must be implemented by all Transaction subclasses. |
     # +-------------------------------------------------------------+
-
     #
     # Validation
     #
@@ -84,9 +63,10 @@ class BaseTransaction(rlp.Serializable, metaclass=ABCMeta):
         """
         if self.intrinsic_gas > self.gas:
             raise ValidationError("Insufficient gas")
+
         self.check_signature_validity()
 
-    #
+    # 
     # Signature and Sender
     #
     @property
@@ -95,6 +75,7 @@ class BaseTransaction(rlp.Serializable, metaclass=ABCMeta):
             self.check_signature_validity()
         except ValidationError:
             return False
+
         else:
             return True
 
@@ -113,7 +94,7 @@ class BaseTransaction(rlp.Serializable, metaclass=ABCMeta):
         """
         raise NotImplementedError("Must be implemented by subclasses")
 
-    #
+    # 
     # Get gas costs
     #
     @abstractmethod
@@ -133,7 +114,7 @@ class BaseTransaction(rlp.Serializable, metaclass=ABCMeta):
         """
         return self.get_intrinsic_gas() + computation.get_gas_used()
 
-    #
+    # 
     # Conversion to and creation of unsigned transactions.
     #
     @abstractmethod
@@ -145,7 +126,9 @@ class BaseTransaction(rlp.Serializable, metaclass=ABCMeta):
 
     @classmethod
     @abstractmethod
-    def create_unsigned_transaction(self, *args: Any, **kwargs: Any) -> 'BaseTransaction':
+    def create_unsigned_transaction(
+        self, *args: Any, **kwargs: Any
+    ) -> 'BaseTransaction':
         """
         Create an unsigned transaction.
         """
@@ -162,7 +145,7 @@ class BaseUnsignedTransaction(rlp.Serializable, metaclass=ABCMeta):
         ('data', binary),
     ]
 
-    #
+    # 
     # API that must be implemented by all Transaction subclasses.
     #
     def validate(self) -> None:
@@ -206,7 +189,7 @@ class BaseShardingTransaction(rlp.Serializable):
         sedes = self.__class__.exclude('data')
         return keccak(rlp.encode(self, sedes))
 
-    #
+    # 
     # Validation
     #
     def validate(self) -> None:
@@ -224,7 +207,7 @@ class BaseShardingTransaction(rlp.Serializable):
         """
         return self.get_intrinsic_gas()
 
-    #
+    # 
     # Base gas costs
     #
     @abstractmethod

@@ -14,5 +14,5 @@ class P2PTransaction(rlp.Serializable):
 class BlockBody(rlp.Serializable):
     fields = [
         ('transactions', sedes.CountableList(P2PTransaction)),
-        ('uncles', sedes.CountableList(BlockHeader))
+        ('uncles', sedes.CountableList(BlockHeader)),
     ]

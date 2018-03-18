@@ -6,23 +6,11 @@ extracting environment variables.
 import os
 
 from typing import (  # noqa: F401
-    Any,
-    Type,
-    Iterable,
-    List,
-    Union,
-    TypeVar,
-    Dict,
-    Callable
+    Any, Type, Iterable, List, Union, TypeVar, Dict, Callable
 )
 
-
 # No set literals because we support Python 2.6.
-TRUE_VALUES = set((
-    True,
-    'True',
-    'true',
-))
+TRUE_VALUES = set((True, 'True', 'true'))
 
 
 class empty(object):
@@ -33,7 +21,7 @@ class empty(object):
     pass
 
 
-def get_env_value(name: str, required: bool=False, default: Any=empty) -> str:
+def get_env_value(name: str, required: bool = False, default: Any = empty) -> str:
     """
     Core function for extracting the environment variable.
 
@@ -44,19 +32,21 @@ def get_env_value(name: str, required: bool=False, default: Any=empty) -> str:
     """
     if required and default is not empty:
         raise ValueError("Using `default` with `required=True` is invalid")
+
     elif required:
         try:
             value = os.environ[name]
         except KeyError:
-            raise KeyError(
-                "Must set environment variable {0}".format(name)
-            )
+            raise KeyError("Must set environment variable {0}".format(name))
+
     else:
         value = os.environ.get(name, default)
     return value
 
 
-def env_int(name: str, required: bool=False, default: Union[Type[empty], int]=empty) -> int:
+def env_int(
+    name: str, required: bool = False, default: Union[Type[empty], int] = empty
+) -> int:
     """Pulls an environment variable out of the environment and casts it to an
     integer. If the name is not present in the environment and no default is
     specified then a ``ValueError`` will be raised. Similarly, if the
@@ -81,10 +71,13 @@ def env_int(name: str, required: bool=False, default: Union[Type[empty], int]=em
             "`env_int` requires either a default value to be specified, or for "
             "the variable to be present in the environment"
         )
+
     return int(value)
 
 
-def env_float(name: str, required: bool=False, default: Union[Type[empty], float]=empty) -> float:
+def env_float(
+    name: str, required: bool = False, default: Union[Type[empty], float] = empty
+) -> float:
     """Pulls an environment variable out of the environment and casts it to an
     float. If the name is not present in the environment and no default is
     specified then a ``ValueError`` will be raised. Similarly, if the
@@ -109,13 +102,16 @@ def env_float(name: str, required: bool=False, default: Union[Type[empty], float
             "`env_float` requires either a default value to be specified, or for "
             "the variable to be present in the environment"
         )
+
     return float(value)
 
 
-def env_bool(name: str,
-             truthy_values: Iterable[Any]=TRUE_VALUES,
-             required: bool=False,
-             default: Union[Type[empty], bool]=empty) -> bool:
+def env_bool(
+    name: str,
+    truthy_values: Iterable[Any] = TRUE_VALUES,
+    required: bool = False,
+    default: Union[Type[empty], bool] = empty,
+) -> bool:
     """Pulls an environment variable out of the environment returning it as a
     boolean. The strings ``'True'`` and ``'true'`` are the default *truthy*
     values. If not present in the environment and no default is specified,
@@ -140,10 +136,13 @@ def env_bool(name: str,
     value = get_env_value(name, required=required, default=default)
     if value is empty:
         return None
+
     return value in TRUE_VALUES
 
 
-def env_string(name: str, required: bool=False, default: Union[Type[empty], str]=empty) -> str:
+def env_string(
+    name: str, required: bool = False, default: Union[Type[empty], str] = empty
+) -> str:
     """Pulls an environment variable out of the environment returning it as a
     string. If not present in the environment and no default is specified, an
     empty string is returned.
@@ -166,10 +165,12 @@ def env_string(name: str, required: bool=False, default: Union[Type[empty], str]
     return value
 
 
-def env_list(name: str,
-             separator: str =',',
-             required: bool=False,
-             default: Union[Type[empty], List]=empty) -> List:
+def env_list(
+    name: str,
+    separator: str = ',',
+    required: bool = False,
+    default: Union[Type[empty], List] = empty,
+) -> List:
     """Pulls an environment variable out of the environment, splitting it on a
     separator, and returning it as a list. Extra whitespace on the list values
     is stripped. List values that evaluate as falsy are removed. If not present
@@ -193,6 +194,7 @@ def env_list(name: str,
     value = get_env_value(name, required=required, default=default)
     if value is empty:
         return []
+
     # wrapped in list to force evaluation in python 3
     return list(filter(bool, [v.strip() for v in value.split(separator)]))
 
@@ -200,10 +202,12 @@ def env_list(name: str,
 T = TypeVar('T')
 
 
-def get(name: str,
-        required: bool=False,
-        default: Union[Type[empty], T]=empty,
-        type: Type[T]=None) -> T:
+def get(
+    name: str,
+    required: bool = False,
+    default: Union[Type[empty], T] = empty,
+    type: Type[T] = None,
+) -> T:
     """Generic getter for environment variables. Handles defaults,
     required-ness, and what type to expect.
 
@@ -225,19 +229,14 @@ def get(name: str,
     fns = {
         'int': env_int,
         int: env_int,
-
         # 'float': env_float,
         # float: env_float,
-
         'bool': env_bool,
         bool: env_bool,
-
         'string': env_string,
         str: env_string,
-
         'list': env_list,
         list: env_list,
     }  # type: Dict[Union[str, Type], Callable[..., Any]]
-
     fn = fns.get(type, env_string)
     return fn(name, default=default, required=required)

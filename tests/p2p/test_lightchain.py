@@ -6,30 +6,17 @@ import pytest
 import rlp
 from rlp import sedes
 
-from evm.chains.mainnet import (
-    MAINNET_NETWORK_ID,
-    MAINNET_VM_CONFIGURATION,
-)
+from evm.chains.mainnet import (MAINNET_NETWORK_ID, MAINNET_VM_CONFIGURATION)
 from evm.db.backends.memory import MemoryDB
 from evm.rlp.headers import BlockHeader
 
-from p2p.les import (
-    LESProtocol,
-    Announce,
-    BlockHeaders,
-    GetBlockHeaders,
-    Status,
-)
+from p2p.les import (LESProtocol, Announce, BlockHeaders, GetBlockHeaders, Status)
 from p2p.lightchain import LightChain
 from p2p.peer import LESPeer
 from p2p import protocol
 
 from integration_test_helpers import FakeAsyncChainDB
-from peer_helpers import (
-    get_directly_linked_peers,
-    get_fresh_mainnet_chaindb,
-)
-
+from peer_helpers import (get_directly_linked_peers, get_fresh_mainnet_chaindb)
 
 # A full header sync may involve several round trips, so we must be willing to wait a little bit
 # for them.
@@ -42,25 +29,21 @@ async def test_incremental_header_sync(request, event_loop, chaindb_mainnet_100)
     # msgs to the client, which will then ask the server for any headers it's missing until their
     # chaindbs are in sync.
     light_chain, _, server = await get_lightchain_with_peers(
-        request, event_loop, get_fresh_mainnet_chaindb())
-
+        request, event_loop, get_fresh_mainnet_chaindb()
+    )
     # We start the client/server with fresh chaindbs above because we don't want them to start
     # syncing straight away -- instead we want to manually trigger incremental syncs by having the
     # server send Announce messages. We're now ready to give our server a populated chaindb.
     server.chaindb = chaindb_mainnet_100
-
     # The server now announces block #10 as the new head...
     server.send_announce(head_number=10)
-
     # ... and we wait for the client to process that and request all headers it's missing up to
     # block #10.
     header_10 = server.chaindb.get_canonical_block_header_by_number(10)
     await wait_for_head(light_chain.chaindb, header_10)
     assert_canonical_chains_are_equal(light_chain.chaindb, server.chaindb, 10)
-
     # Now the server announces block 100 as its current head...
     server.send_announce(head_number=100)
-
     # ... and the client should then fetch headers from 10-100.
     header_100 = server.chaindb.get_canonical_block_header_by_number(100)
     await wait_for_head(light_chain.chaindb, header_100)
@@ -72,24 +55,30 @@ async def test_full_header_sync_and_reorg(request, event_loop, chaindb_mainnet_1
     # Here we create our server with a populated chaindb, so upon startup it will announce its
     # chain head and the client will fetch all headers
     light_chain, _, server = await get_lightchain_with_peers(
-        request, event_loop, chaindb_mainnet_100)
-
+        request, event_loop, chaindb_mainnet_100
+    )
     # ... and our client should then fetch all headers.
     head = server.chaindb.get_canonical_head()
     await wait_for_head(light_chain.chaindb, head)
-    assert_canonical_chains_are_equal(light_chain.chaindb, server.chaindb, head.block_number)
-
+    assert_canonical_chains_are_equal(
+        light_chain.chaindb, server.chaindb, head.block_number
+    )
     head_parent = server.chaindb.get_block_header_by_hash(head.parent_hash)
     difficulty = head.difficulty + 1
     new_head = BlockHeader.from_parent(
-        head_parent, head_parent.gas_limit, difficulty=difficulty,
-        timestamp=head.timestamp, coinbase=head.coinbase)
+        head_parent,
+        head_parent.gas_limit,
+        difficulty=difficulty,
+        timestamp=head.timestamp,
+        coinbase=head.coinbase,
+    )
     server.chaindb.persist_header(new_head)
     assert server.chaindb.get_canonical_head() == new_head
     server.send_announce(head_number=head.block_number, reorg_depth=1)
-
     await wait_for_head(light_chain.chaindb, new_head)
-    assert_canonical_chains_are_equal(light_chain.chaindb, server.chaindb, new_head.block_number)
+    assert_canonical_chains_are_equal(
+        light_chain.chaindb, server.chaindb, new_head.block_number
+    )
 
 
 @pytest.mark.asyncio
@@ -97,12 +86,13 @@ async def test_header_sync_with_multi_peers(request, event_loop, chaindb_mainnet
     # In this test we start with one of our peers announcing block #100, and we sync all
     # headers up to that...
     light_chain, _, server = await get_lightchain_with_peers(
-        request, event_loop, chaindb_mainnet_100)
-
+        request, event_loop, chaindb_mainnet_100
+    )
     head = server.chaindb.get_canonical_head()
     await wait_for_head(light_chain.chaindb, head)
-    assert_canonical_chains_are_equal(light_chain.chaindb, server.chaindb, head.block_number)
-
+    assert_canonical_chains_are_equal(
+        light_chain.chaindb, server.chaindb, head.block_number
+    )
     # Now a second peer comes along and announces block #100 as well, but it's different
     # from the one we already have, so we need to fetch that too. And since it has a higher total
     # difficulty than the current head, it will become our new chain head.
@@ -110,19 +100,25 @@ async def test_header_sync_with_multi_peers(request, event_loop, chaindb_mainnet
     head_parent = server2_chaindb.get_block_header_by_hash(head.parent_hash)
     difficulty = head.difficulty + 1
     new_head = BlockHeader.from_parent(
-        head_parent, head_parent.gas_limit, difficulty=difficulty,
-        timestamp=head.timestamp, coinbase=head.coinbase)
+        head_parent,
+        head_parent.gas_limit,
+        difficulty=difficulty,
+        timestamp=head.timestamp,
+        coinbase=head.coinbase,
+    )
     server2_chaindb.persist_header(new_head)
     assert server2_chaindb.get_canonical_head() == new_head
     client2, server2 = await get_client_and_server_peer_pair(
         request,
         event_loop,
         client_chaindb=light_chain.chaindb,
-        server_chaindb=server2_chaindb)
-
+        server_chaindb=server2_chaindb,
+    )
     light_chain.register_peer(client2)
     await wait_for_head(light_chain.chaindb, new_head)
-    assert_canonical_chains_are_equal(light_chain.chaindb, server2.chaindb, new_head.block_number)
+    assert_canonical_chains_are_equal(
+        light_chain.chaindb, server2.chaindb, new_head.block_number
+    )
 
 
 class LESProtocolServer(LESProtocol):
@@ -141,9 +137,7 @@ class LESProtocolServer(LESProtocol):
 
     def send_block_headers(self, headers, buffer_value, request_id):
         data = {
-            'request_id': request_id,
-            'headers': headers,
-            'buffer_value': buffer_value,
+            'request_id': request_id, 'headers': headers, 'buffer_value': buffer_value
         }
         header, body = BlockHeaders(self).encode(data)
         self.send(header, body)
@@ -175,9 +169,12 @@ class LESPeerServer(LESPeer):
         header = self.chaindb.get_canonical_block_header_by_number(self.head_number)
         total_difficulty = self.chaindb.get_score(header.hash)
         self.sub_proto.send_announce(
-            header.hash, header.block_number, total_difficulty, reorg_depth)
+            header.hash, header.block_number, total_difficulty, reorg_depth
+        )
 
-    def handle_sub_proto_msg(self, cmd: protocol.Command, msg: protocol._DecodedMsgType):
+    def handle_sub_proto_msg(
+        self, cmd: protocol.Command, msg: protocol._DecodedMsgType
+    ):
         super().handle_sub_proto_msg(cmd, msg)
         if isinstance(cmd, GetBlockHeaders):
             self.handle_get_block_headers(msg)
@@ -194,15 +191,17 @@ class LESPeerServer(LESPeer):
         else:
             end = min(self.head_number + 1, block_number + query.max_headers)
             block_numbers = range(block_number, end)
-
         headers = tuple(
-            self.chaindb.get_canonical_block_header_by_number(i)
-            for i in block_numbers
+            self.chaindb.get_canonical_block_header_by_number(i) for i in block_numbers
         )
-        self.sub_proto.send_block_headers(headers, buffer_value=0, request_id=msg['request_id'])
+        self.sub_proto.send_block_headers(
+            headers, buffer_value=0, request_id=msg['request_id']
+        )
 
 
-async def get_client_and_server_peer_pair(request, event_loop, client_chaindb, server_chaindb):
+async def get_client_and_server_peer_pair(
+    request, event_loop, client_chaindb, server_chaindb
+):
     """Return a client/server peer pair with the given chain DBs.
 
     The client peer will be an instance of LESPeer, configured with the client_chaindb.
@@ -211,9 +210,8 @@ async def get_client_and_server_peer_pair(request, event_loop, client_chaindb, s
     peer that can respond to GetBlockHeaders requests.
     """
     return await get_directly_linked_peers(
-        request, event_loop,
-        LESPeer, client_chaindb,
-        LESPeerServer, server_chaindb)
+        request, event_loop, LESPeer, client_chaindb, LESPeerServer, server_chaindb
+    )
 
 
 async def get_lightchain_with_peers(request, event_loop, server_peer_chaindb):
@@ -232,9 +230,9 @@ async def get_lightchain_with_peers(request, event_loop, server_peer_chaindb):
         event_loop.run_until_complete(light_chain.stop())
 
     request.addfinalizer(finalizer)
-
     client, server = await get_client_and_server_peer_pair(
-        request, event_loop, chaindb, server_peer_chaindb)
+        request, event_loop, chaindb, server_peer_chaindb
+    )
     light_chain.register_peer(client)
     return light_chain, client, server
 
@@ -268,14 +266,17 @@ def assert_canonical_chains_are_equal(chaindb1, chaindb2, block_number=None):
         assert block_number == chaindb2.get_canonical_head().block_number
     for i in range(0, block_number + 1):
         assert chaindb1.get_canonical_block_header_by_number(i) == (
-            chaindb2.get_canonical_block_header_by_number(i))
+            chaindb2.get_canonical_block_header_by_number(i)
+        )
 
 
 @pytest.fixture
 def chaindb_mainnet_100():
     """Return a chaindb with mainnet headers numbered from 0 to 100."""
     here = os.path.dirname(__file__)
-    headers_rlp = open(os.path.join(here, 'fixtures', 'sample_1000_headers_rlp'), 'r+b').read()
+    headers_rlp = open(
+        os.path.join(here, 'fixtures', 'sample_1000_headers_rlp'), 'r+b'
+    ).read()
     headers = rlp.decode(headers_rlp, sedes=sedes.CountableList(BlockHeader))
     chaindb = FakeAsyncChainDB(MemoryDB())
     for i in range(0, 101):
@@ -284,7 +285,9 @@ def chaindb_mainnet_100():
 
 
 async def wait_for_head(chaindb, header):
+
     async def wait_loop():
         while chaindb.get_canonical_head() != header:
             await asyncio.sleep(0.1)
+
     await asyncio.wait_for(wait_loop(), HEADER_SYNC_TIMEOUT)

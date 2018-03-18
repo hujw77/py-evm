@@ -1,4 +1,4 @@
-#
+# 
 # Arithmetic
 #
 STOP = 'STOP'
@@ -13,7 +13,7 @@ ADDMOD = 'ADDMOD'
 MULMOD = 'MULMOD'
 EXP = 'EXP'
 SIGNEXTEND = 'SIGNEXTEND'
-#
+# 
 # Comparisons
 #
 LT = 'LT'
@@ -27,11 +27,11 @@ OR = 'OR'
 XOR = 'XOR'
 NOT = 'NOT'
 BYTE = 'BYTE'
-#
+# 
 # Sha3
 #
 SHA3 = 'SHA3'
-#
+# 
 # Environment Information
 #
 ADDRESS = 'ADDRESS'
@@ -50,7 +50,7 @@ EXTCODECOPY = 'EXTCODECOPY'
 RETURNDATASIZE = 'RETURNDATASIZE'
 RETURNDATACOPY = 'RETURNDATACOPY'
 SIGHASH = 'SIGHASH'
-#
+# 
 # Block Information
 #
 BLOCKHASH = 'BLOCKHASH'
@@ -59,7 +59,7 @@ TIMESTAMP = 'TIMESTAMP'
 NUMBER = 'NUMBER'
 DIFFICULTY = 'DIFFICULTY'
 GASLIMIT = 'GASLIMIT'
-#
+# 
 # Stack, Memory, Storage and Flow Operations
 #
 POP = 'POP'
@@ -75,7 +75,7 @@ MSIZE = 'MSIZE'
 GAS = 'GAS'
 JUMPDEST = 'JUMPDEST'
 REVERT = 'REVERT'
-#
+# 
 # Push Operations
 #
 PUSH1 = 'PUSH1'
@@ -110,7 +110,7 @@ PUSH29 = 'PUSH29'
 PUSH30 = 'PUSH30'
 PUSH31 = 'PUSH31'
 PUSH32 = 'PUSH32'
-#
+# 
 # Duplicate Operations
 #
 DUP1 = 'DUP1'
@@ -129,7 +129,7 @@ DUP13 = 'DUP13'
 DUP14 = 'DUP14'
 DUP15 = 'DUP15'
 DUP16 = 'DUP16'
-#
+# 
 # Exchange Operations
 #
 SWAP1 = 'SWAP1'
@@ -148,7 +148,7 @@ SWAP13 = 'SWAP13'
 SWAP14 = 'SWAP14'
 SWAP15 = 'SWAP15'
 SWAP16 = 'SWAP16'
-#
+# 
 # Logging
 #
 LOG0 = 'LOG0'
@@ -156,7 +156,7 @@ LOG1 = 'LOG1'
 LOG2 = 'LOG2'
 LOG3 = 'LOG3'
 LOG4 = 'LOG4'
-#
+# 
 # System
 #
 CREATE = 'CREATE'

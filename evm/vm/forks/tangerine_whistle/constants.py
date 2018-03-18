@@ -1,10 +1,8 @@
-#
+# 
 # EIP150 Mainnet Block
 #
 TANGERINE_WHISTLE_MAINNET_BLOCK = 2463000
-
-
-#
+# 
 # Gas Costs and Refunds
 #
 GAS_SELFDESTRUCT_EIP150 = 5000

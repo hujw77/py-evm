@@ -3,15 +3,12 @@ import io
 import logging
 
 from evm import opcode_values
-from evm.validation import (
-    validate_is_bytes,
-)
+from evm.validation import (validate_is_bytes,)
 
 
 class CodeStream(object):
     stream = None
     depth_processed = None
-
     logger = logging.getLogger('evm.vm.CodeStream')
 
     def __init__(self, code_bytes):
@@ -37,9 +34,9 @@ class CodeStream(object):
 
     def next(self):
         next_opcode_as_byte = self.read(1)
-
         if next_opcode_as_byte:
             return ord(next_opcode_as_byte)
+
         else:
             return opcode_values.STOP
 
@@ -63,6 +60,7 @@ class CodeStream(object):
         self.pc = pc
         try:
             yield self
+
         finally:
             self.pc = anchor_pc
 
@@ -71,10 +69,13 @@ class CodeStream(object):
     def is_valid_opcode(self, position):
         if position >= len(self):
             return False
+
         if position in self.invalid_positions:
             return False
+
         if position <= self.depth_processed:
             return True
+
         else:
             i = self.depth_processed
             while i <= position:
@@ -88,8 +89,8 @@ class CodeStream(object):
                 else:
                     self.depth_processed = i
                     i += 1
-
             if position in self.invalid_positions:
                 return False
+
             else:
                 return True

@@ -5,13 +5,9 @@ from cytoolz import merge
 
 import web3
 
-
 LOGFILE = '/tmp/trinity-shell.log'
 LOGLEVEL = logging.INFO
-
 loop = asyncio.get_event_loop()
-
-
 DEFAULT_BANNER = (
     "Trinity Console\n"
     "---------------\n"
@@ -31,7 +27,6 @@ def ipython_shell(namespace, banner):
         )
 
     from IPython.terminal.embed import InteractiveShellEmbed
-
     return InteractiveShellEmbed(user_ns=namespace, banner1=banner)
 
 
@@ -46,29 +41,21 @@ def python_shell(namespace, banner):
         pass
     else:
         readline.parse_and_bind('tab: complete')
-
     shell = code.InteractiveConsole(namespace)
     return partial(shell.interact, banner=banner)
 
 
-def console(ipc_path,
-            use_ipython=True,
-            env=None,
-            banner=DEFAULT_BANNER):
+def console(ipc_path, use_ipython=True, env=None, banner=DEFAULT_BANNER):
     """
     Method that starts the chain, setups the trinity CLI and register the
     cleanup function.
     """
     if env is None:
         env = {}
-
     w3 = web3.Web3(web3.IPCProvider(ipc_path))
-
     namespace = merge({'w3': w3}, env)
-
     if use_ipython:
         shell = ipython_shell(namespace, banner)
     else:
         shell = python_shell(namespace, banner)
-
     shell()

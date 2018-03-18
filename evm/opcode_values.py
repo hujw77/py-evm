@@ -1,4 +1,4 @@
-#
+# 
 # Stop and Arithmetic
 #
 STOP = 0x00
@@ -13,9 +13,7 @@ ADDMOD = 0x08
 MULMOD = 0x09
 EXP = 0x0a
 SIGNEXTEND = 0x0b
-
-
-#
+# 
 # Comparison and Bitwise Logic
 #
 LT = 0x10
@@ -29,15 +27,11 @@ OR = 0x17
 XOR = 0x18
 NOT = 0x19
 BYTE = 0x1a
-
-
-#
+# 
 # Sha3
 #
 SHA3 = 0x20
-
-
-#
+# 
 # Environment Information
 #
 ADDRESS = 0x30
@@ -56,9 +50,7 @@ EXTCODECOPY = 0x3c
 RETURNDATASIZE = 0x3d
 RETURNDATACOPY = 0x3e
 SIGHASH = 0x3f
-
-
-#
+# 
 # Block Information
 #
 BLOCKHASH = 0x40
@@ -67,13 +59,10 @@ TIMESTAMP = 0x42
 NUMBER = 0x43
 DIFFICULTY = 0x44
 GASLIMIT = 0x45
-
-
-#
+# 
 # Stack, Memory, Storage and Flow Operations
 #
 POP = 0x50
-
 MLOAD = 0x51
 MSTORE = 0x52
 MSTORE8 = 0x53
@@ -85,9 +74,7 @@ PC = 0x58
 MSIZE = 0x59
 GAS = 0x5a
 JUMPDEST = 0x5b
-
-
-#
+# 
 # Push Operations
 #
 PUSH1 = 0x60
@@ -122,9 +109,7 @@ PUSH29 = 0x7c
 PUSH30 = 0x7d
 PUSH31 = 0x7e
 PUSH32 = 0x7f
-
-
-#
+# 
 # Duplicate Operations
 #
 DUP1 = 0x80
@@ -143,9 +128,7 @@ DUP13 = 0x8c
 DUP14 = 0x8d
 DUP15 = 0x8e
 DUP16 = 0x8f
-
-
-#
+# 
 # Exchange Operations
 #
 SWAP1 = 0x90
@@ -164,9 +147,7 @@ SWAP13 = 0x9c
 SWAP14 = 0x9d
 SWAP15 = 0x9e
 SWAP16 = 0x9f
-
-
-#
+# 
 # Logging
 #
 LOG0 = 0xa0
@@ -174,9 +155,7 @@ LOG1 = 0xa1
 LOG2 = 0xa2
 LOG3 = 0xa3
 LOG4 = 0xa4
-
-
-#
+# 
 # System
 #
 CREATE = 0xf0

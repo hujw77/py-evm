@@ -1,23 +1,16 @@
-from cytoolz import (
-    curry,
-)
+from cytoolz import (curry,)
 
-from evm.utils.spoof import (
-    SpoofTransaction,
-)
+from evm.utils.spoof import (SpoofTransaction,)
 
 
 @curry
 def execute_plus_buffer(multiplier, state, transaction):
     computation = state.execute_transaction(transaction)
-
     if computation.is_error:
         raise computation._error
 
     gas_used = transaction.gas_used_by(computation)
-
     gas_plus_buffer = int(gas_used * multiplier)
-
     return min(gas_plus_buffer, state.gas_limit)
 
 
@@ -28,9 +21,9 @@ def _get_computation_error(state, transaction):
     snapshot = state.snapshot()
     computation = state.execute_transaction(transaction)
     state.revert(snapshot)
-
     if computation.is_error:
         return computation._error
+
     else:
         return None
 
@@ -69,15 +62,12 @@ def binary_gas_search(state, transaction, tolerance=1):
             minimum_viable = midpoint
         else:
             maximum_out_of_gas = midpoint
-
     return minimum_viable
 
 
 # Estimate in increments of intrinsic gas usage
 binary_gas_search_intrinsic_tolerance = binary_gas_search(tolerance=21000)
-
 # Estimate in increments of 1000 gas, takes roughly 5 more executions than intrinsic to estimate
 binary_gas_search_1000_tolerance = binary_gas_search(tolerance=1000)
-
 # Estimate to the exact gas, takes roughly 15 more executions than intrinsic to estimate
 binary_gas_search_exact = binary_gas_search(tolerance=1)

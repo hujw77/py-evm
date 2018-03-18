@@ -9,7 +9,6 @@ def pop(computation):
 
 def push_XX(computation, size):
     raw_value = computation.code.read(size)
-
     if not raw_value.strip(b'\x00'):
         computation.stack.push(0)
     else:

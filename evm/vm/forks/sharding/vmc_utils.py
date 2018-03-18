@@ -1,9 +1,7 @@
 import json
 import os
 
-from evm.utils.hexadecimal import (
-    decode_hex,
-)
+from evm.utils.hexadecimal import (decode_hex,)
 
 
 def get_vmc_json():

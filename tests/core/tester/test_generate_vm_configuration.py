@@ -2,9 +2,7 @@ import pytest
 
 import enum
 
-from evm.chains.tester import (
-    _generate_vm_configuration,
-)
+from evm.chains.tester import (_generate_vm_configuration,)
 
 
 class Forks(enum.Enum):
@@ -17,20 +15,25 @@ class Forks(enum.Enum):
 @pytest.mark.parametrize(
     "kwargs,expected",
     (
-        (
-            dict(),
-            ((0, Forks.SpuriousDragon),),
-        ),
+        (dict(), ((0, Forks.SpuriousDragon),)),
         (
             dict(spurious_dragon_block=1),
             ((0, Forks.TangerineWhistle), (1, Forks.SpuriousDragon)),
         ),
         (
             dict(tangerine_whistle_start_block=1, spurious_dragon_block=2),
-            ((0, Forks.Homestead), (1, Forks.TangerineWhistle), (2, Forks.SpuriousDragon)),
+            (
+                (0, Forks.Homestead),
+                (1, Forks.TangerineWhistle),
+                (2, Forks.SpuriousDragon),
+            ),
         ),
         (
-            dict(homestead_start_block=1, tangerine_whistle_start_block=2, spurious_dragon_block=3),
+            dict(
+                homestead_start_block=1,
+                tangerine_whistle_start_block=2,
+                spurious_dragon_block=3,
+            ),
             (
                 (0, Forks.Frontier),
                 (1, Forks.Homestead),
@@ -40,20 +43,13 @@ class Forks(enum.Enum):
         ),
         (
             dict(homestead_start_block=1, spurious_dragon_block=3),
-            (
-                (0, Forks.Frontier),
-                (1, Forks.Homestead),
-                (3, Forks.SpuriousDragon),
-            ),
+            ((0, Forks.Frontier), (1, Forks.Homestead), (3, Forks.SpuriousDragon)),
         ),
         (
             dict(tangerine_whistle_start_block=1),
             ((0, Forks.Homestead), (1, Forks.TangerineWhistle)),
         ),
-        (
-            dict(homestead_start_block=1),
-            ((0, Forks.Frontier), (1, Forks.Homestead)),
-        ),
+        (dict(homestead_start_block=1), ((0, Forks.Frontier), (1, Forks.Homestead))),
         (
             dict(homestead_start_block=1, dao_start_block=2),
             ((0, Forks.Frontier), (1, Forks.Homestead)),
@@ -71,13 +67,10 @@ class Forks(enum.Enum):
 def test_generate_vm_configuration(kwargs, expected):
     actual = _generate_vm_configuration(**kwargs)
     assert len(actual) == len(expected)
-
     for left, right in zip(actual, expected):
         left_block, left_vm = left
         right_block, right_vm = right
-
         assert left_block == right_block
-
         if right_vm == Forks.Frontier:
             assert 'Frontier' in left_vm.__name__
         elif right_vm == Forks.Homestead:

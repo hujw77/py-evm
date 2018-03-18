@@ -7,13 +7,9 @@ from rlp import sedes
 from evm.rlp.headers import BlockHeader
 from evm.rlp.receipts import Receipt
 
-from p2p.protocol import (
-    Command,
-    Protocol,
-)
+from p2p.protocol import (Command, Protocol)
 from p2p.rlp import BlockBody, P2PTransaction
 from p2p.sedes import HashOrNumber
-
 
 # Max number of items we can ask for in ETH requests. These are the values used in geth and if we
 # ask for more than this the peers will disconnect from us.
@@ -72,10 +68,18 @@ class BlockBodies(Command):
 class NewBlock(Command):
     _cmd_id = 7
     structure = [
-        ('block', sedes.List([BlockHeader,
-                              sedes.CountableList(P2PTransaction),
-                              sedes.CountableList(BlockHeader)])),
-        ('total_difficulty', sedes.big_endian_int)]
+        (
+            'block',
+            sedes.List(
+                [
+                    BlockHeader,
+                    sedes.CountableList(P2PTransaction),
+                    sedes.CountableList(BlockHeader),
+                ]
+            ),
+        ),
+        ('total_difficulty', sedes.big_endian_int),
+    ]
 
 
 class GetNodeData(Command):
@@ -102,9 +106,20 @@ class ETHProtocol(Protocol):
     name = b'eth'
     version = 63
     _commands = [
-        Status, NewBlockHashes, Transactions, GetBlockHeaders, BlockHeaders, BlockHeaders,
-        GetBlockBodies, BlockBodies, NewBlock, GetNodeData, NodeData,
-        GetReceipts, Receipts]
+        Status,
+        NewBlockHashes,
+        Transactions,
+        GetBlockHeaders,
+        BlockHeaders,
+        BlockHeaders,
+        GetBlockBodies,
+        BlockBodies,
+        NewBlock,
+        GetNodeData,
+        NodeData,
+        GetReceipts,
+        Receipts,
+    ]
     cmd_length = 17
     logger = logging.getLogger("p2p.eth.ETHProtocol")
 
@@ -125,9 +140,12 @@ class ETHProtocol(Protocol):
         header, body = cmd.encode(node_hashes)
         self.send(header, body)
 
-    def send_get_block_headers(self, block_number_or_hash: Union[int, bytes],
-                               max_headers: int, reverse: bool = True
-                               ) -> None:
+    def send_get_block_headers(
+        self,
+        block_number_or_hash: Union[int, bytes],
+        max_headers: int,
+        reverse: bool = True,
+    ) -> None:
         """Send a GetBlockHeaders msg to the remote.
 
         This requests that the remote send us up to max_headers, starting from
@@ -137,7 +155,10 @@ class ETHProtocol(Protocol):
         if max_headers > MAX_HEADERS_FETCH:
             raise ValueError(
                 "Cannot ask for more than {} block headers in a single request".format(
-                    MAX_HEADERS_FETCH))
+                    MAX_HEADERS_FETCH
+                )
+            )
+
         cmd = GetBlockHeaders(self)
         # Number of block headers to skip between each item (i.e. step in python APIs).
         skip = 0
@@ -145,7 +166,8 @@ class ETHProtocol(Protocol):
             'block_number_or_hash': block_number_or_hash,
             'max_headers': max_headers,
             'skip': skip,
-            'reverse': reverse}
+            'reverse': reverse,
+        }
         header, body = cmd.encode(data)
         self.send(header, body)
 

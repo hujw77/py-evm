@@ -5,45 +5,37 @@ from cytoolz import merge
 
 from evm import constants
 from evm.vm.forks.tangerine_whistle.constants import (
-    GAS_CALL_EIP150,
-    GAS_SELFDESTRUCT_EIP150
+    GAS_CALL_EIP150, GAS_SELFDESTRUCT_EIP150
 )
 
-from evm.exceptions import (
-    WriteProtection,
-)
+from evm.exceptions import (WriteProtection,)
 from evm import opcode_values
 from evm import mnemonics
 
 from evm.opcode import as_opcode
 
-from evm.logic import (
-    call,
-    context,
-    logging,
-    storage,
-    system,
-)
+from evm.logic import (call, context, logging, storage, system)
 
 from evm.vm.forks.spurious_dragon.opcodes import SPURIOUS_DRAGON_OPCODES
 
 
 def ensure_no_static(opcode_fn):
+
     @functools.wraps(opcode_fn)
     def inner(computation):
         if computation.msg.is_static:
-            raise WriteProtection("Cannot modify state while inside of a STATICCALL context")
+            raise WriteProtection(
+                "Cannot modify state while inside of a STATICCALL context"
+            )
+
         return opcode_fn(computation)
+
     return inner
 
 
 UPDATED_OPCODES = {
-    opcode_values.REVERT: as_opcode(
-        logic_fn=system.revert,
-        mnemonic=mnemonics.REVERT,
-        gas_cost=constants.GAS_ZERO,
-    ),
-    #
+    opcode_values.REVERT: as_opcode(logic_fn=system.revert, mnemonic=mnemonics.REVERT, gas_cost=constants.GAS_ZERO),
+    # 
     # Context
     #
     opcode_values.RETURNDATASIZE: as_opcode(
@@ -51,12 +43,8 @@ UPDATED_OPCODES = {
         mnemonic=mnemonics.RETURNDATASIZE,
         gas_cost=constants.GAS_BASE,
     ),
-    opcode_values.RETURNDATACOPY: as_opcode(
-        logic_fn=context.returndatacopy,
-        mnemonic=mnemonics.RETURNDATACOPY,
-        gas_cost=constants.GAS_VERYLOW,
-    ),
-    #
+    opcode_values.RETURNDATACOPY: as_opcode(logic_fn=context.returndatacopy, mnemonic=mnemonics.RETURNDATACOPY, gas_cost=constants.GAS_VERYLOW),
+    # 
     # Call
     #
     opcode_values.STATICCALL: call.StaticCall.configure(
@@ -64,12 +52,8 @@ UPDATED_OPCODES = {
         mnemonic=mnemonics.STATICCALL,
         gas_cost=GAS_CALL_EIP150,
     )(),
-    opcode_values.CALL: call.CallByzantium.configure(
-        __name__='opcode:CALL',
-        mnemonic=mnemonics.CALL,
-        gas_cost=GAS_CALL_EIP150,
-    )(),
-    #
+    opcode_values.CALL: call.CallByzantium.configure(__name__='opcode:CALL', mnemonic=mnemonics.CALL, gas_cost=GAS_CALL_EIP150)(),
+    # 
     # Logging
     #
     opcode_values.LOG0: as_opcode(
@@ -92,29 +76,17 @@ UPDATED_OPCODES = {
         mnemonic=mnemonics.LOG3,
         gas_cost=constants.GAS_LOG,
     ),
-    opcode_values.LOG4: as_opcode(
-        logic_fn=ensure_no_static(logging.log4),
-        mnemonic=mnemonics.LOG4,
-        gas_cost=constants.GAS_LOG,
-    ),
-    #
+    opcode_values.LOG4: as_opcode(logic_fn=ensure_no_static(logging.log4), mnemonic=mnemonics.LOG4, gas_cost=constants.GAS_LOG),
+    # 
     # Create
     #
-    opcode_values.CREATE: system.CreateByzantium.configure(
-        __name__='opcode:CREATE',
-        mnemonic=mnemonics.CREATE,
-        gas_cost=constants.GAS_CREATE,
-    )(),
+    opcode_values.CREATE: system.CreateByzantium.configure(__name__='opcode:CREATE', mnemonic=mnemonics.CREATE, gas_cost=constants.GAS_CREATE)(),
     # TODO: CREATE2
     #
     # Storage
     #
-    opcode_values.SSTORE: as_opcode(
-        logic_fn=ensure_no_static(storage.sstore),
-        mnemonic=mnemonics.SSTORE,
-        gas_cost=constants.GAS_NULL,
-    ),
-    #
+    opcode_values.SSTORE: as_opcode(logic_fn=ensure_no_static(storage.sstore), mnemonic=mnemonics.SSTORE, gas_cost=constants.GAS_NULL),
+    # 
     # Self Destruct
     #
     opcode_values.SELFDESTRUCT: as_opcode(
@@ -123,9 +95,4 @@ UPDATED_OPCODES = {
         gas_cost=GAS_SELFDESTRUCT_EIP150,
     ),
 }
-
-
-BYZANTIUM_OPCODES = merge(
-    copy.deepcopy(SPURIOUS_DRAGON_OPCODES),
-    UPDATED_OPCODES,
-)
+BYZANTIUM_OPCODES = merge(copy.deepcopy(SPURIOUS_DRAGON_OPCODES), UPDATED_OPCODES)

@@ -1,12 +1,8 @@
 import pytest
 
 from evm import opcode_values
-from evm.vm.code_stream import (
-    CodeStream,
-)
-from evm.exceptions import (
-    ValidationError,
-)
+from evm.vm.code_stream import (CodeStream,)
+from evm.exceptions import (ValidationError,)
 
 
 def test_code_stream_accepts_bytes():
@@ -86,7 +82,9 @@ def test_harder_is_valid_opcode():
 
 
 def test_even_harder_is_valid_opcode():
-    test = b'\x02\x03\x7d' + (b'\x04' * 32) + b'\x05\x7e' + (b'\x04' * 35) + b'\x01\x61\x01\x01\x01'
+    test = b'\x02\x03\x7d' + (b'\x04' * 32) + b'\x05\x7e' + (
+        b'\x04' * 35
+    ) + b'\x01\x61\x01\x01\x01'
     code_stream = CodeStream(test)
     # valid: 0 - 2 :: 33 - 36 :: 68 - 73 :: 76
     # invalid: 3 - 32 (PUSH30) :: 37 - 67 (PUSH31) :: 74, 75 (PUSH2) :: 77+ (too long)

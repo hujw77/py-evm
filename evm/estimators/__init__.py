@@ -1,8 +1,6 @@
 import os
 
-from evm.utils.module_loading import (
-    import_string,
-)
+from evm.utils.module_loading import (import_string,)
 
 
 def get_gas_estimator():

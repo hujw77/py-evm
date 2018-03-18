@@ -1,9 +1,6 @@
 import pytest
 from evm.db.backends.memory import MemoryDB
-from evm.db.tracked import (
-    AccessLogs,
-    TrackedDB,
-)
+from evm.db.tracked import (AccessLogs, TrackedDB)
 
 
 @pytest.fixture
@@ -17,7 +14,6 @@ def test_set_and_get(tracked_db):
     tracked_db.set(b'2', b'test')
     assert tracked_db.access_logs.writes.get(b'1') == b'test'
     assert len(tracked_db.access_logs.writes) == 2
-
     # get
     assert tracked_db.get(b'1') == b'test'
     assert tracked_db.get(b'2') == b'test'
@@ -28,7 +24,6 @@ def test_set_and_get(tracked_db):
 def test_exists_and_delete(tracked_db):
     tracked_db.set(b'1', b'test')
     assert tracked_db.access_logs.writes.get(b'1') == b'test'
-
     # exists
     tracked_db.access_logs = AccessLogs()  # clear _reads
     # existence is True
@@ -37,7 +32,6 @@ def test_exists_and_delete(tracked_db):
     # existence is False
     assert not tracked_db.exists(b'2')
     assert tracked_db.access_logs.reads.get(b'2') is None
-
     # delete
     tracked_db.access_logs.writes = {}  # clear _writes
     tracked_db.delete(b'1')

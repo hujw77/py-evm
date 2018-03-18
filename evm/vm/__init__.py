@@ -1,9 +1,3 @@
-from .vm import (  # noqa: F401
-    VM,
-)
-from .shard_vm import (  # noqa: F401
-    ShardVM,
-)
-from .message import (  # noqa: F401
-    Message,
-)
+from .vm import (VM,)  # noqa: F401
+from .shard_vm import (ShardVM,)  # noqa: F401
+from .message import (Message,)  # noqa: F401

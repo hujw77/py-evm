@@ -1,15 +1,10 @@
-from evm.vm.shard_vm import (
-    ShardVM,
-)
+from evm.vm.shard_vm import (ShardVM,)
 from evm.vm.forks.byzantium import (
-    configure_byzantium_header,
-    compute_byzantium_difficulty,
+    configure_byzantium_header, compute_byzantium_difficulty
 )
 
 from .collations import Collation
-from .headers import (
-    create_sharding_header_from_parent,
-)
+from .headers import (create_sharding_header_from_parent,)
 from .vm_state import ShardingVMState
 
 ShardingVM = ShardVM.configure(

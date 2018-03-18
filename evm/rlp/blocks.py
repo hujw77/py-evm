@@ -1,13 +1,8 @@
-from abc import (
-    ABCMeta,
-    abstractmethod
-)
+from abc import (ABCMeta, abstractmethod)
 
 import rlp
 
-from evm.utils.datatypes import (
-    Configurable,
-)
+from evm.utils.datatypes import (Configurable,)
 
 from evm.db.chain import BaseChainDB
 
@@ -29,6 +24,7 @@ class BaseBlock(rlp.Serializable, Configurable, metaclass=ABCMeta):
     def get_transaction_class(cls) -> BaseTransaction:
         if cls.transaction_class is None:
             raise AttributeError("Block subclasses must declare a transaction_class")
+
         return cls.transaction_class
 
     @classmethod
@@ -55,8 +51,7 @@ class BaseBlock(rlp.Serializable, Configurable, metaclass=ABCMeta):
 
     def __repr__(self) -> str:
         return '<{class_name}(#{b})>'.format(
-            class_name=self.__class__.__name__,
-            b=str(self),
+            class_name=self.__class__.__name__, b=str(self)
         )
 
     def __str__(self) -> str:
