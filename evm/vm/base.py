@@ -56,8 +56,7 @@ class BaseVM(Configurable, metaclass=ABCMeta):
 
     def __init__(self, header, chaindb):
         self.chaindb = chaindb
-        block_class = self.get_block_class()
-        self.block = block_class.from_header(header=header, chaindb=self.chaindb)
+        self.block = self.get_state_class().get_block_from_header(header=header, chaindb=self.chaindb)
 
     #
     # Logging
@@ -223,7 +222,7 @@ class BaseVM(Configurable, metaclass=ABCMeta):
             coinbase,
             timestamp=parent_header.timestamp + 1,
         )
-        block = cls.get_block_class()(
+        block = cls.get_state_class().get_block(
             block_header,
             transactions=[],
             uncles=[],
@@ -350,7 +349,7 @@ class BaseVM(Configurable, metaclass=ABCMeta):
 
     @classmethod
     def get_block_by_header(cls, block_header, db):
-        return cls.get_block_class().from_header(block_header, db)
+        return cls.get_state_class().get_block_from_header(block_header, db)
 
     @classmethod
     @to_tuple

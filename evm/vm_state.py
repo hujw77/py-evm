@@ -248,6 +248,15 @@ class BaseVMState(Configurable, metaclass=ABCMeta):
             raise AttributeError("No `block_class_class` has been set for this VMState")
         return cls.block_class
 
+
+    @classmethod
+    def get_block(cls, *args, **kwargs):
+        return cls.get_block_class()(args, kwargs)
+
+    @classmethod
+    def get_block_from_header(cls, *args, **kwargs):
+        return cls.get_block_class().from_header( *args, **kwargs)
+
     #
     # Execution
     #
