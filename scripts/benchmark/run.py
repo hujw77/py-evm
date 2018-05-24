@@ -3,7 +3,8 @@
 import logging
 
 from checks import (
-    mine_empty_blocks_benchmark
+    mine_empty_blocks_benchmark,
+    import_empty_blocks_benchmark
 )
 
 from utils.shellart import (
@@ -27,6 +28,8 @@ def run() -> None:
     logging.info(bold_green(HEADER))
 
     mine_empty_blocks_benchmark()
+    import_empty_blocks_benchmark()
+
 
 
 if __name__ == '__main__':
