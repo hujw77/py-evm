@@ -19,9 +19,11 @@ from eth_typing import (
 
 from evm import constants, Chain
 from evm.vm.base import BaseVM
-from evm.vm.forks import ALL_VM
+from evm.chains.mainnet import MainnetChain
 from evm.db.backends.memory import MemoryDB
 
+
+ALL_VM = [vm for _, vm in MainnetChain.vm_configuration]
 
 FUNDED_ADDRESS_PRIVATE_KEY = keys.PrivateKey(
     decode_hex('0x45a915e4d060149eb4365960e6a7a45f334393093061116b197e3240065ff2d8')
