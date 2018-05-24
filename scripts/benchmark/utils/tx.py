@@ -1,7 +1,18 @@
 import logging
 
-from evm.utils.spoof import (
-    SpoofTransaction,
+from eth_typing import (
+    Address
+)
+
+from evm.rlp.transactions import (
+    BaseTransaction
+)
+from evm.vm.base import (
+    VM
+)
+
+from eth_keys.datatypes import (
+    PrivateKey
 )
 
 from utils.decorator import (
@@ -11,14 +22,14 @@ from utils.decorator import (
 
 @timecall(log_level=logging.DEBUG)
 def new_transaction(
-        vm,
-        from_,
-        to,
-        amount=0,
-        private_key=None,
-        gas_price=10,
-        gas=100000,
-        data=b''):
+        vm: VM,
+        from_: Address,
+        to: Address,
+        amount: int=0,
+        private_key: PrivateKey=None,
+        gas_price: int=10,
+        gas: int=100000,
+        data: bytes=b'') -> BaseTransaction:
     """
     Create and return a transaction sending amount from <from_> to <to>.
 
@@ -27,7 +38,5 @@ def new_transaction(
     nonce = vm.state.account_db.get_nonce(from_)
     tx = vm.create_unsigned_transaction(
         nonce=nonce, gas_price=gas_price, gas=gas, to=to, value=amount, data=data)
-    if private_key:
-        return tx.as_signed_transaction(private_key)
-    else:
-        return SpoofTransaction(tx, from_=from_)
+
+    return tx.as_signed_transaction(private_key)

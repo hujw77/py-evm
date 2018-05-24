@@ -65,10 +65,11 @@ class FuncTimer(object):
             self.totaltime += duration
             funcname = fn.__name__
             filename = fn.__code__.co_filename
-            lineno = fn.__code__.co_firstlineno
 
-            logging.log(self.log_level, self.formatter("\n{file_name}->{fn_name}(...) ({duration:.3f}s)\n".format(
-                file_name=os.path.basename(filename),
-                fn_name=funcname,
-                duration=duration
-            )))
+            logging.log(
+                self.log_level,
+                self.formatter("\n{file_name}->{fn_name}(...) ({duration:.3f}s)\n".format(
+                    file_name=os.path.basename(filename),
+                    fn_name=funcname,
+                    duration=duration
+                )))
