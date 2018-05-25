@@ -17,6 +17,10 @@ from eth_bloom import (
     BloomFilter,
 )
 
+from eth_typing import (
+    Address
+)
+
 from eth_utils import (
     to_tuple,
 )
@@ -588,6 +592,13 @@ class VM(BaseVM):
     #
     # Transactions
     #
+    def get_transaction_nonce(self, sender: Address):
+        """
+        Retrieve a transaction nonce from the underlying AccountDB
+        """
+        return self.state.account_db.get_nonce(sender)
+
+
     def create_transaction(self, *args, **kwargs):
         """
         Proxy for instantiating a signed transaction for this VM.
