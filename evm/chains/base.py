@@ -92,7 +92,7 @@ from evm.utils.rlp import (
 )
 
 if TYPE_CHECKING:
-    from evm.vm.base import BaseVM  # noqa: F401
+    from evm.vm.base import VM  # noqa: F401
 
 
 # Mapping from address to account state.
@@ -108,7 +108,7 @@ class BaseChain(Configurable, metaclass=ABCMeta):
     """
     chaindb = None  # type: BaseChainDB
     chaindb_class = None  # type: Type[BaseChainDB]
-    vm_configuration = None  # type: Tuple[Tuple[int, Type[BaseVM]], ...]
+    vm_configuration = None  # type: Tuple[Tuple[int, Type[VM]], ...]
 
     #
     # Helpers
@@ -144,11 +144,11 @@ class BaseChain(Configurable, metaclass=ABCMeta):
     # VM API
     #
     @abstractmethod
-    def get_vm(self, header: BlockHeader=None) -> 'BaseVM':
+    def get_vm(self, header: BlockHeader=None) -> 'VM':
         raise NotImplementedError("Chain classes must implement this method")
 
     @classmethod
-    def get_vm_class_for_block_number(cls, block_number: BlockNumber) -> Type['BaseVM']:
+    def get_vm_class_for_block_number(cls, block_number: BlockNumber) -> Type['VM']:
         """
         Returns the VM class for the given block number.
         """
@@ -370,7 +370,7 @@ class Chain(BaseChain):
     #
     # VM API
     #
-    def get_vm(self, header: BlockHeader=None) -> 'BaseVM':
+    def get_vm(self, header: BlockHeader=None) -> 'VM':
         """
         Returns the VM instance for the given block number.
         """
