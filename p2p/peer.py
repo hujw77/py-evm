@@ -135,6 +135,9 @@ async def handshake(remote: Node,
     return peer
 
 
+PEER_MSG_TYPE = Tuple['BasePeer', protocol.Command, protocol._DecodedMsgType]
+
+
 class BasePeer(BaseService):
     logger = logging.getLogger("p2p.peer.Peer")
     conn_idle_timeout = CONN_IDLE_TIMEOUT
@@ -168,7 +171,7 @@ class BasePeer(BaseService):
         self.headerdb = headerdb
         self.network_id = network_id
         self.inbound = inbound
-        self._subscribers: List['asyncio.Queue[PEER_MSG_TYPE]'] = []
+        self._subscribers: List[asyncio.Queue[PEER_MSG_TYPE]] = []
 
         self.egress_mac = egress_mac
         self.ingress_mac = ingress_mac
@@ -189,10 +192,10 @@ class BasePeer(BaseService):
             self, cmd: protocol.Command, msg: protocol._DecodedMsgType) -> None:
         raise NotImplementedError("Must be implemented by subclasses")
 
-    def add_subscriber(self, subscriber: 'asyncio.Queue[PEER_MSG_TYPE]') -> None:
+    def add_subscriber(self, subscriber: asyncio.Queue[PEER_MSG_TYPE]) -> None:
         self._subscribers.append(subscriber)
 
-    def remove_subscriber(self, subscriber: 'asyncio.Queue[PEER_MSG_TYPE]') -> None:
+    def remove_subscriber(self, subscriber: asyncio.Queue[PEER_MSG_TYPE]) -> None:
         if subscriber in self._subscribers:
             self._subscribers.remove(subscriber)
 
@@ -525,14 +528,14 @@ class ETHPeer(BasePeer):
 
 
 class PeerPoolSubscriber(ABC):
-    _msg_queue: 'asyncio.Queue[PEER_MSG_TYPE]' = None
+    _msg_queue: asyncio.Queue[PEER_MSG_TYPE] = None
 
     @abstractmethod
     def register_peer(self, peer: BasePeer) -> None:
         raise NotImplementedError("Must be implemented by subclasses")
 
     @property
-    def msg_queue(self) -> 'asyncio.Queue[PEER_MSG_TYPE]':
+    def msg_queue(self) -> asyncio.Queue[PEER_MSG_TYPE]:
         if self._msg_queue is None:
             self._msg_queue = asyncio.Queue()
         return self._msg_queue
@@ -914,9 +917,6 @@ class ChainInfo:
         self.block_hash = block_hash
         self.total_difficulty = total_difficulty
         self.genesis_hash = genesis_hash
-
-
-PEER_MSG_TYPE = Tuple[BasePeer, protocol.Command, protocol._DecodedMsgType]
 
 
 def _test():
