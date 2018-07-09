@@ -1,3 +1,6 @@
+from trinity.plugins.builtin.console.plugin import (
+    ConsolePlugin
+)
 from trinity.plugins.builtin.tx_pool.plugin import (
     TxPlugin
 )
@@ -8,5 +11,6 @@ from trinity.plugins.builtin.tx_pool.plugin import (
 # config file which plugin is enabled or not
 
 ENABLED_PLUGINS = [
-    TxPlugin()
+    ConsolePlugin(),
+    TxPlugin(),
 ]

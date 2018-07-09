@@ -25,9 +25,6 @@ from trinity.chains import (
     is_data_dir_initialized,
     serve_chaindb,
 )
-from trinity.console import (
-    console,
-)
 from trinity.cli_parser import (
     parser,
     subparser,
@@ -145,10 +142,10 @@ def main() -> None:
 
     display_launch_logs(chain_config)
 
-    # if console command, run the trinity CLI
-    if args.subcommand == 'attach':
-        run_console(chain_config, not args.vanilla_shell)
-        sys.exit(0)
+    plugin_manager.broadcast(TrinityStartupEvent(
+        args,
+        chain_config
+    ))
 
     # start the listener thread to handle logs produced by other processes in
     # the local logger.
@@ -187,10 +184,7 @@ def main() -> None:
     plugin_manager.broadcast(NetworkProcessReadyEvent())
 
     try:
-        if args.subcommand == 'console':
-            run_console(chain_config, not args.vanilla_shell)
-        else:
-            networking_process.join()
+        networking_process.join()
     except KeyboardInterrupt:
         # When a user hits Ctrl+C in the terminal, the SIGINT is sent to all processes in the
         # foreground *process group*, so both our networking and database processes will terminate
@@ -210,15 +204,6 @@ def main() -> None:
         import time; time.sleep(0.2)  # noqa: E702
         kill_process_gracefully(networking_process, logger)
         logger.info('Networking process (pid=%d) terminated', networking_process.pid)
-
-
-def run_console(chain_config: ChainConfig, vanilla_shell_args: bool) -> None:
-    logger = logging.getLogger("trinity")
-    try:
-        console(chain_config.jsonrpc_ipc_path, use_ipython=vanilla_shell_args)
-    except FileNotFoundError as err:
-        logger.error(str(err))
-        sys.exit(1)
 
 
 @setup_cprofiler('run_database_process')
