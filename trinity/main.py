@@ -38,7 +38,8 @@ from trinity.extensibility import (
     PluginManager,
 )
 from trinity.extensibility.events import (
-    TrinityStartupEvent
+    NetworkProcessReadyEvent,
+    TrinityStartupEvent,
 )
 from trinity.plugins.registry import (
     ENABLED_PLUGINS
@@ -177,6 +178,8 @@ def main() -> None:
 
     networking_process.start()
     logger.info("Started networking process (pid=%d)", networking_process.pid)
+
+    plugin_manager.broadcast(NetworkProcessReadyEvent())
 
     try:
         if args.subcommand == 'console':

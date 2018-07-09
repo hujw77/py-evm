@@ -46,6 +46,13 @@ class PluginStartedEvent(BaseEvent):
         self.plugin = plugin
 
 
+class NetworkProcessReadyEvent(BaseEvent):
+    """
+    Broadcasted when the networking process is ready
+    """
+    pass
+
+
 class ResourceAvailableEvent(BaseEvent):
     """
     Broadcasted when a resource becomes available
