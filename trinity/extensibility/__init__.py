@@ -5,6 +5,7 @@ from trinity.extensibility.plugin import (  # noqa: F401
     BasePlugin,
     DebugPlugin,
     PluginContext,
+    PluginProcess
 )
 from trinity.extensibility.plugin_manager import (  # noqa: F401
     PluginManager,

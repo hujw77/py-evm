@@ -37,6 +37,7 @@ from trinity.config import (
 )
 from trinity.extensibility import (
     PluginManager,
+    PluginProcess
 )
 from trinity.extensibility.events import (
     NetworkProcessReadyEvent,
@@ -93,7 +94,10 @@ TRINITY_AMBIGIOUS_FILESYSTEM_INFO = (
 
 
 def main() -> None:
-    plugin_manager = setup_plugins()
+    # This is the plugin manager for the main process. It is only concerned
+    # about plugins that are intended to run in this process, which for now,
+    # are only the console / attach commands provided by the ConsolePlugin
+    plugin_manager = setup_plugins(PluginProcess.MAIN)
     plugin_manager.amend_argparser_config(parser, subparser)
     args = parser.parse_args()
 
@@ -248,13 +252,9 @@ async def exit_on_signal(service_to_exit: BaseService) -> None:
 @with_queued_logging
 def launch_node(args: Namespace, chain_config: ChainConfig) -> None:
     NodeClass = chain_config.node_class
-    # Temporary hack: We setup a second instance of the PluginManager.
-    # The first instance was only to configure the ArgumentParser whereas
-    # for now, the second instance that lives inside the networking process
-    # performs the bulk of the work. In the future, the PluginManager
-    # should probably live in its own process and manage whether plugins
-    # run in the shared plugin process or spawn their own.
-    plugin_manager = setup_plugins()
+    # This plugin manager lives in the network process and for now is considered
+    # the main plugin manager that most of the plugins should want to live in.
+    plugin_manager = setup_plugins(PluginProcess.SHARED)
     plugin_manager.broadcast(TrinityStartupEvent(
         args,
         chain_config
@@ -280,8 +280,8 @@ def run_service_until_quit(service: BaseService) -> None:
     loop.close()
 
 
-def setup_plugins() -> PluginManager:
-    plugin_manager = PluginManager()
+def setup_plugins(process: PluginProcess) -> PluginManager:
+    plugin_manager = PluginManager(process)
     # TODO: Implement auto-discovery of plugins based on some convention/configuration scheme
     plugin_manager.register(ENABLED_PLUGINS)
 

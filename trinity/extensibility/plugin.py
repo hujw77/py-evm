@@ -6,6 +6,10 @@ from argparse import (
     Action,
     ArgumentParser,
 )
+from enum import (
+    auto,
+    Enum,
+)
 import logging
 from typing import (
     Any
@@ -19,6 +23,11 @@ from trinity.extensibility.events import (
 PluginContext = Any
 
 
+class PluginProcess(Enum):
+    MAIN = auto(),
+    SHARED = auto()
+
+
 class BasePlugin(ABC):
 
     @property
@@ -30,6 +39,13 @@ class BasePlugin(ABC):
         raise NotImplementedError(
             "Must be implemented by subclasses"
         )
+
+    @property
+    def process(self) -> PluginProcess:
+        """
+        Specify the process in which the plugin should operate
+        """
+        return PluginProcess.SHARED
 
     @property
     def logger(self) -> logging.Logger:

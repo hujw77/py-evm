@@ -15,6 +15,7 @@ from trinity.extensibility.events import (
 )
 from trinity.extensibility.plugin import (
     BasePlugin,
+    PluginProcess
 )
 
 
@@ -28,7 +29,12 @@ class PluginManager:
         This API is very much in flux and is expected to change heavily.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, process: PluginProcess) -> None:
+
+        if process is None:
+            raise ValueError("Must provide the `PluginProcess` for the plugin manager instance")
+
+        self._process = process
         self._plugin_store: List[BasePlugin] = []
         self._started_plugins: List[BasePlugin] = []
         self._logger = logging.getLogger("trinity.extensibility.plugin_manager.PluginManager")
@@ -64,6 +70,9 @@ class PluginManager:
         for plugin in self._plugin_store:
 
             if plugin is exclude:
+                continue
+
+            if plugin.process is not self._process:
                 continue
 
             plugin.handle_event(event)
