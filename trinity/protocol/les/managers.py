@@ -33,6 +33,7 @@ if TYPE_CHECKING:
 BaseRequestManager = _BaseRequestManager[
     'LESPeer',
     HeaderRequest,
+    Tuple[BlockIdentifier, int, int, bool, int],
     Dict[str, Any],
     Tuple[BlockHeader, ...]
 ]
@@ -46,21 +47,18 @@ class GetBlockHeadersRequestManager(BaseRequestManager):
     # All `RequestManager` classes are expected to implement the `__call__`
     # method, including changing the function signature, thus the
     # `# type: ignore` here is both expected and required.
-    async def __call__(self,  # type: ignore
-                       block_number_or_hash: BlockIdentifier,
-                       max_headers: int = None,
-                       skip: int = 0,
-                       reverse: bool = True,
-                       timeout: int = None) -> Tuple[BlockHeader, ...]:
+    async def __call__(self,
+                       param: Tuple[BlockIdentifier, int, int, bool, int]) -> Tuple[BlockHeader, ...]:
         request_id = gen_request_id()
         request = HeaderRequest(
-            block_number_or_hash,
-            max_headers,
-            skip,
-            reverse,
+            param[0],
+            param[1],
+            param[2],
+            param[3],
             request_id,
         )
-        return await self._request_and_wait(request, timeout)
+
+        return await self._request_and_wait(request, param[4])
 
     def _send_sub_proto_request(self, request: HeaderRequest) -> None:
         self._peer.sub_proto.send_get_block_headers(request)

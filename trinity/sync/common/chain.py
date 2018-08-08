@@ -227,12 +227,13 @@ class BaseHeaderChainSyncer(BaseService, PeerSubscriber):
         """Fetch a batch of headers starting at start_at and return the ones we're missing."""
         self.logger.debug("Fetching chain segment starting at #%d", start_at)
 
-        headers = await peer.requests.get_block_headers(
+        headers = await peer.requests.get_block_headers((
             start_at,
             peer.max_headers_fetch,
-            skip=0,
-            reverse=False,
-        )
+            0,
+            False,
+            None,
+        ))
 
         # We only want headers that are missing, so we iterate over the list
         # until we find the first missing header, after which we return all of

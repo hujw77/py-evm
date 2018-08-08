@@ -27,11 +27,12 @@ from .requests import BaseRequest
 
 TPeer = TypeVar('TPeer', bound=BasePeer)
 TRequest = TypeVar('TRequest', bound=BaseRequest)
+TRequestParam = TypeVar('TRequestParam')
 TResponse = TypeVar('TResponse')
 TReturn = TypeVar('TReturn')
 
 
-class BaseRequestManager(PeerSubscriber, BaseService, Generic[TPeer, TRequest, TResponse, TReturn]):  # noqa: E501
+class BaseRequestManager(PeerSubscriber, BaseService, Generic[TPeer, TRequest, TRequestParam, TResponse, TReturn]):  # noqa: E501
     #
     # PeerSubscriber
     #
@@ -99,7 +100,7 @@ class BaseRequestManager(PeerSubscriber, BaseService, Generic[TPeer, TRequest, T
         pass
 
     @abstractmethod
-    def __call__(self) -> TReturn:
+    def __call__(self, param: TRequestParam) -> TReturn:
         """
         Subclasses must both implement this method and override the call
         signature to properly construct the `Request` object and pass it into
