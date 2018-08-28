@@ -126,6 +126,8 @@ class Server(BaseService):
 
     def _make_peer_pool(self) -> PeerPool:
         # This method exists only so that ShardSyncer can provide a different implementation.
+        print("da fuk?")
+        print(self.event_bus)
         return PeerPool(
             self.peer_class,
             self.headerdb,
