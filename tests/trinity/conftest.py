@@ -5,6 +5,11 @@ import pytest
 import tempfile
 import uuid
 
+from lahja import (
+    EventBus,
+    Endpoint
+)
+
 from p2p.peer import PeerPool
 
 from trinity.rpc.main import (
@@ -50,6 +55,13 @@ def event_loop():
     finally:
         loop.close()
 
+@pytest.fixture(scope='session')
+def event_bus(event_loop):
+    bus = EventBus()
+    endpoint = bus.create_endpoint('test')
+    bus.start(event_loop)
+    endpoint.connect(event_loop)
+    return endpoint
 
 @pytest.fixture(scope='session')
 def jsonrpc_ipc_pipe_path():
@@ -68,7 +80,7 @@ def p2p_server(monkeypatch, jsonrpc_ipc_pipe_path):
 @pytest.fixture
 async def ipc_server(
         monkeypatch,
-        p2p_server,
+        event_bus,
         jsonrpc_ipc_pipe_path,
         event_loop,
         chain_with_block_validation):
@@ -77,7 +89,7 @@ async def ipc_server(
     the course of all tests. It yields the IPC server only for monkeypatching purposes
     '''
 
-    rpc = RPCServer(chain_with_block_validation, p2p_server.peer_pool)
+    rpc = RPCServer(chain_with_block_validation, event_bus)
     ipc_server = IPCServer(rpc, jsonrpc_ipc_pipe_path, loop=event_loop)
 
     asyncio.ensure_future(ipc_server.run(), loop=event_loop)
