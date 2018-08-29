@@ -444,7 +444,7 @@ async def test_peer_pool_over_ipc(
         ipc_server):
 
     asyncio.ensure_future(event_bus_setup_fn(event_bus))
-    
+
     result = await get_ipc_response(
         jsonrpc_ipc_pipe_path,
         request_msg,
