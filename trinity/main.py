@@ -263,7 +263,7 @@ def trinity_boot(args: Namespace,
             plugin_manager,
             main_endpoint,
             event_bus,
-            ev.reason
+            ev.reason1
         )
     )
 
