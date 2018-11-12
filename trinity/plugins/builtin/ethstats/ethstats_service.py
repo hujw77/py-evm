@@ -1,3 +1,4 @@
+import asyncio
 import platform
 
 import websockets
@@ -7,7 +8,6 @@ from eth.chains.base import (
 )
 from p2p.events import (
     PeerCountRequest,
-    PeerCountResponse,
 )
 from p2p.service import (
     BaseService,
@@ -134,13 +134,19 @@ class EthstatsService(BaseService):
         }
 
     async def get_node_stats(self) -> EthstatsData:
-        response: PeerCountResponse = await self.context.event_bus.request(
-            PeerCountRequest()
-        )
+
+        try:
+            peer_count = (await asyncio.wait_for(
+                self.context.event_bus.request(PeerCountRequest()),
+                timeout=0.5
+            )).peer_count
+        except asyncio.TimeoutError:
+            self.logger.warning("Timeout: PeerPool did not answer PeerCountRequest")
+            peer_count = 0
 
         return {
             'active': True,
-            'peers': response.peer_count,
+            'peers': peer_count,
         }
 
     def get_chain(self) -> BaseChain:
