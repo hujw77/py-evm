@@ -52,9 +52,25 @@ def _serialize_g1(result: G1Point) -> bytes:
     )
 
 
+def _g1_add(x: G1Point, y: G1Point) -> G1Point:
+    result = bls12_381.add((x[0], x[1], bls12_381.FQ1.one()), (y[0], y[1], bls12_381.FQ1.one()))
+    return bls12_381.normalize(result)
+
+
 def g1_add(computation: BaseComputation,
            gas_cost: int = constants.GAS_BLS_G1_ADD) -> BaseComputation:
-    raise NotImplementedError()
+    computation.consume_gas(gas_cost, reason='BLS_G1_ADD Precompile')
+
+    try:
+        input_data = computation.msg.data_as_bytes
+        x = _parse_g1_point(input_data[:G1_SIZE_IN_BYTES])
+        y = _parse_g1_point(input_data[G1_SIZE_IN_BYTES:])
+        result = _g1_add(x, y)
+    except ValidationError:
+        raise VMError("Invalid BLS_G1_ADD parameters")
+
+    computation.output = _serialize_g1(result)
+    return computation
 
 
 def g1_mul(computation: BaseComputation,
