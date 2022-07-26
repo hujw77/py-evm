@@ -53,7 +53,7 @@ def _serialize_g1(result: G1Point) -> bytes:
 
 
 def _g1_add(x: G1Point, y: G1Point) -> G1Point:
-    result = bls12_381.add((x[0], x[1], bls12_381.FQ1.one()), (y[0], y[1], bls12_381.FQ1.one()))
+    result = bls12_381.add((x[0], x[1], bls12_381.FQ.one()), (y[0], y[1], bls12_381.FQ.one()))
     return bls12_381.normalize(result)
 
 
