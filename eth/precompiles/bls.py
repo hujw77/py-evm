@@ -52,8 +52,20 @@ def _serialize_g1(result: G1Point) -> bytes:
     )
 
 
+def _is_zero(x: G1Point) -> bool:
+    zero = bls12_381.FQ.zero()
+    if x[0] == zero and x[1] == zero:
+        return True
+    else:
+        return False
+
+
 def _g1_add(x: G1Point, y: G1Point) -> G1Point:
-    result = bls12_381.add((x[0], x[1], bls12_381.FQ.one()), (y[0], y[1], bls12_381.FQ.one()))
+    one, zero = bls12_381.FQ.one(), bls12_381.FQ.zero()
+    result = bls12_381.add(
+            (x[0], x[1], zero if _is_zero(x) else one),
+            (y[0], y[1], zero if _is_zero(x) else one)
+            )
     return bls12_381.normalize(result)
 
 
