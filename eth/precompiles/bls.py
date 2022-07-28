@@ -68,6 +68,8 @@ def _g1_add(x: G1Point, y: G1Point) -> G1Point:
             (x[0], x[1], zero if _is_zero(x) else one),
             (y[0], y[1], zero if _is_zero(x) else one)
             )
+    print((x[0], x[1], zero if _is_zero(x) else one))
+    print((y[0], y[1], zero if _is_zero(x) else one))
     print(result)
     return bls12_381.normalize(result)
 
