@@ -202,8 +202,8 @@ def _pairing(input_data: bytes) -> bool:
         q = _parse_g2_point(
             input_data[next_index + G1_SIZE_IN_BYTES:next_index + G1_TO_G2_OFFSET]
         )
-        projective_p = (p[0], p[1], bls12_381.FQ.one())
-        projective_q = (q[0], q[1], bls12_381.FQ2.one())
+        projective_p = (p[0], p[1], bls12_381.FQ.zero() if _is_zero(p) else bls12_381.FQ.one())
+        projective_q = (q[0], q[1], bls12_381.FQ2.zero() if _is_zero(q) else bls12_381.FQ2.one())
         field_element *= bls12_381.pairing(projective_q, projective_p, final_exponentiate=False)
 
     return bls12_381.final_exponentiate(field_element) == bls12_381.FQ12.one()
