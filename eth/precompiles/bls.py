@@ -161,7 +161,8 @@ def g2_add(computation: BaseComputation,
 
 
 def _g2_mul(x: G2Point, k: int) -> G2Point:
-    result = bls12_381.multiply((x[0], x[1], bls12_381.FQ2.one()), k)
+    one, zero = bls12_381.FQ2.one(), bls12_381.FQ2.zero()
+    result = bls12_381.multiply((x[0], x[1], zero if _is_zero(x) else one), k)
     return bls12_381.normalize(result)
 
 
