@@ -55,7 +55,7 @@ def _serialize_g1(result: G1Point) -> bytes:
 
 
 def _is_zero(x: G1Point) -> bool:
-    zero = bls12_381.FQ.zero()
+    zero = x.[0].zero()
     if x[0] == zero and x[1] == zero:
         return True
     else:
@@ -68,9 +68,6 @@ def _g1_add(x: G1Point, y: G1Point) -> G1Point:
             (x[0], x[1], zero if _is_zero(x) else one),
             (y[0], y[1], zero if _is_zero(y) else one)
             )
-    print((x[0], x[1], zero if _is_zero(x) else one))
-    print((y[0], y[1], zero if _is_zero(y) else one))
-    print(result)
     return bls12_381.normalize(result)
 
 
@@ -119,7 +116,9 @@ def _parse_g2_point(data: bytes) -> G2Point:
     )
     point = (x, y)
 
-    if not bls12_381.is_on_curve((x, y, bls12_381.FQ2.one()), bls12_381.b2):
+    one, zero = bls12_381.FQ2.one(), bls12_381.FQ2.zero()
+
+    if not bls12_381.is_on_curve((x, y, zero if _is_zero(point) else one), bls12_381.b2):
         raise ValidationError("invalid G2 point not on curve")
 
     return point
@@ -137,7 +136,11 @@ def _serialize_g2(result: G2Point) -> bytes:
 
 
 def _g2_add(x: G2Point, y: G2Point) -> G2Point:
-    result = bls12_381.add((x[0], x[1], bls12_381.FQ2.one()), (y[0], y[1], bls12_381.FQ2.one()))
+    one, zero = bls12_381.FQ2.one(), bls12_381.FQ2.zero()
+    result = bls12_381.add(
+            (x[0], x[1], zero if _is_zero(x) else one),
+            (y[0], y[1], zero if _is_zero(y) else one)
+            )
     return bls12_381.normalize(result)
 
 
