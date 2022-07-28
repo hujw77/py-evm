@@ -25,7 +25,7 @@ G2_SIZE_IN_BYTES = 256
 # Constant for parsing pairs of points during pairing check
 G1_TO_G2_OFFSET = G1_SIZE_IN_BYTES + G2_SIZE_IN_BYTES
 
-G1Point = Tuple[bls12_381.FQ, bls12_381.FQ]
+G1Point = Tuple[bls12_381.FQ, bls12_381.FQ, bls12_381.FQ]
 G2Point = Tuple[bls12_381.FQ2, bls12_381.FQ2]
 
 
@@ -68,6 +68,7 @@ def _g1_add(x: G1Point, y: G1Point) -> G1Point:
             (x[0], x[1], zero if _is_zero(x) else one),
             (y[0], y[1], zero if _is_zero(x) else one)
             )
+    print(result)
     return bls12_381.normalize(result)
 
 
