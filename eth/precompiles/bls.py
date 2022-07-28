@@ -37,7 +37,9 @@ def _parse_g1_point(data: bytes) -> G1Point:
     y = bls12_381.FQ(int.from_bytes(data[64:128], byteorder="big"))
     point = (x, y)
 
-    if not bls12_381.is_on_curve((x, y, bls12_381.FQ.one()), bls12_381.b):
+    one, zero = bls12_381.FQ.one(), bls12_381.FQ.zero()
+
+    if not bls12_381.is_on_curve((x, y, zero if _is_zero(point) else one), bls12_381.b):
         raise ValidationError("invalid G1 point not on curve")
 
     return point
