@@ -55,7 +55,7 @@ def _serialize_g1(result: G1Point) -> bytes:
 
 
 def _is_zero(x: G1Point) -> bool:
-    zero = x.[0].zero()
+    zero = x[0].zero()
     if x[0] == zero and x[1] == zero:
         return True
     else:
